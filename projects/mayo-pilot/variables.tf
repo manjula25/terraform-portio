@@ -1,0 +1,102 @@
+variable "port_base_url" {
+  description = "Port API base URL. Must match the organization stack. See organization/variables.tf."
+  type        = string
+  default     = "https://api.us.port.io"
+}
+
+####################################################################
+# Project identity
+####################################################################
+
+variable "project_identifier" {
+  description = "Stable identifier for the Port project entity. Never renamed once services relate to it."
+  type        = string
+}
+
+variable "project_title" {
+  description = "Human-readable project name, as leadership refers to it."
+  type        = string
+}
+
+variable "client" {
+  description = "Client or business unit this project belongs to."
+  type        = string
+}
+
+variable "tier" {
+  description = "Engagement classification."
+  type        = string
+  default     = "client"
+
+  validation {
+    condition     = contains(["internal", "client", "strategic"], var.tier)
+    error_message = "tier must be one of: internal, client, strategic."
+  }
+}
+
+variable "owning_team" {
+  description = <<-EOT
+    The Port team that owns this project. Assigned once here; services
+    and environments inherit it through the project relation. Must
+    already exist in Port (teams come from the IdP, not from this
+    stack).
+  EOT
+  type        = string
+}
+
+variable "repo_url" {
+  description = "Primary repository or GitHub org URL for the project."
+  type        = string
+  default     = null
+}
+
+variable "teams_channel" {
+  description = "Microsoft Teams channel URL for the project."
+  type        = string
+  default     = null
+}
+
+variable "start_date" {
+  description = "Engagement start date, RFC3339 (e.g. 2026-09-01T00:00:00Z)."
+  type        = string
+  default     = null
+}
+
+####################################################################
+# GitHub (Ocean) integration
+####################################################################
+
+variable "github_installation_id" {
+  description = <<-EOT
+    The installation ID of the GitHub (Ocean) data source, taken from
+    the Port UI after the integration is installed. Lowercase letters,
+    numbers and dashes only.
+
+    Terraform does not install the integration. It adopts the mapping
+    of an integration that already exists, via `terraform import`. See
+    docs/github-ocean-setup.md.
+  EOT
+  type        = string
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]+$", var.github_installation_id))
+    error_message = "github_installation_id must contain only lowercase letters, numbers and dashes."
+  }
+}
+
+variable "github_organizations" {
+  description = "GitHub organizations to ingest from."
+  type        = list(string)
+}
+
+variable "github_repo_search" {
+  description = <<-EOT
+    GitHub repository search query narrowing what is ingested. Start
+    narrow — one pilot team's repos — and widen once the ingestion
+    counters look clean. Ingesting the whole org on day one buries the
+    pilot in repositories nobody owns.
+
+    Example: "org:mayo-clinic topic:port-pilot"
+  EOT
+  type        = string
+}

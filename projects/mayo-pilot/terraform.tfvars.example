@@ -1,0 +1,26 @@
+# Copy to terraform.tfvars and fill in. terraform.tfvars is gitignored
+# only because it holds environment-specific values; it must still never
+# hold credentials. PORT_CLIENT_ID / PORT_CLIENT_SECRET come from the
+# environment, always.
+
+port_base_url = "https://api.us.port.io" # Phase 0: confirm US vs EU tenant
+
+# Phase 0 blocker: the pilot has to be named by Mayo engineering
+# leadership before any of this can be filled in.
+project_identifier = "mayo-pilot"
+project_title      = "Mayo Pilot"
+client             = "Mayo Clinic"
+tier               = "client"
+
+# Must already exist in Port. Teams come from the IdP (Entra ID —
+# assumed, not confirmed), not from this stack.
+owning_team = "REPLACE-ME"
+
+repo_url      = "https://github.com/REPLACE-ME-org"
+teams_channel = "https://teams.microsoft.com/l/channel/REPLACE-ME"
+start_date    = "2026-09-01T00:00:00Z"
+
+# From the Port UI after installing the GitHub (Ocean) data source.
+github_installation_id = "REPLACE-ME"
+github_organizations   = ["REPLACE-ME-org"]
+github_repo_search     = "org:REPLACE-ME-org topic:port-pilot"

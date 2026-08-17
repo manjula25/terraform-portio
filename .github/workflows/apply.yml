@@ -1,0 +1,63 @@
+name: terraform apply
+
+# Runs on merge to main. Nothing reaches the live Port tenant by any
+# other path — that is what "if it is not in the repo, it does not
+# exist" means operationally.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write
+
+# Never two applies at once against the same tenant. GCS locking would
+# make the second one fail anyway; this makes it queue instead.
+concurrency:
+  group: tf-apply
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    name: apply ${{ matrix.stack }}
+    runs-on: ubuntu-latest
+    # A GitHub environment with required reviewers. The platform team
+    # approves organization/ applies; a shared-model change is the one
+    # that can break every project at once.
+    environment: port-production
+    strategy:
+      fail-fast: true
+      max-parallel: 1
+      matrix:
+        # Ordered deliberately: the shared model must exist before a
+        # project stack can relate entities to it.
+        stack:
+          - organization
+          - projects/mayo-pilot
+    defaults:
+      run:
+        working-directory: ${{ matrix.stack }}
+    env:
+      PORT_CLIENT_ID: ${{ secrets.PORT_CLIENT_ID }}
+      PORT_CLIENT_SECRET: ${{ secrets.PORT_CLIENT_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_TERRAFORM_SERVICE_ACCOUNT }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+          terraform_wrapper: false
+
+      - run: terraform init -input=false
+
+      # Re-plan on main rather than replaying the PR's artifact. Between
+      # the PR plan and the merge, main may have moved and someone may
+      # have touched the tenant by hand.
+      - run: terraform plan -input=false -no-color -lock-timeout=5m -out=tfplan
+
+      - run: terraform apply -input=false -auto-approve -lock-timeout=5m tfplan

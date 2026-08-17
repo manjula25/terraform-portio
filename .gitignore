@@ -1,0 +1,20 @@
+.terraform/
+.terraform.lock.hcl.bak
+
+# Local values. Never credentials — those come from the environment.
+*.tfvars
+!*.tfvars.example
+
+# State should live in GCS. A local state file here means someone ran
+# apply before `terraform init` picked up the backend.
+*.tfstate
+*.tfstate.*
+
+# Plan files can contain resolved variable values.
+tfplan
+*.tfplan
+plan.txt
+
+crash.log
+crash.*.log
+.DS_Store
