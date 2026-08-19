@@ -921,3 +921,85 @@ resource "port_blueprint" "ingestion_source" {
     }
   }
 }
+
+####################################################################
+# Pull request — a change proposed against a service        (FR-015)
+#
+# Phase 2's exit test is "their services, their repositories and pull
+# requests, one action they actually use". DM-5 closed the repository
+# half at schema level; this closes the pull-request half.
+#
+# D-1 deferred additional blueprints generally. This one is a
+# deliberate, recorded exception — mayo-port-prd.md §20 and ADR-002.
+# It is not a licence to add more.
+#
+# T-1: no property or relation identifier below names a git vendor.
+####################################################################
+resource "port_blueprint" "pull_request" {
+  identifier  = "pull_request"
+  title       = "Pull Request"
+  icon        = "Git"
+  description = "A change proposed against a service. Metadata only — never a diff, a comment, or file content (B-1, P-4)."
+
+  properties = {
+    string_props = {
+      # The provider reports open|closed only. `merged` is derived
+      # from a merge timestamp — see the mapping's status expression.
+      "status" = {
+        title       = "Status"
+        description = "merged is derived from a merge timestamp, not reported as a state by the provider."
+        required    = true
+        enum        = ["open", "merged", "closed"]
+      }
+      "url" = {
+        title  = "Link"
+        format = "url"
+      }
+      # B-1: a handle, never an email. An email here would make the
+      # catalog a directory of who changed what, which is a different
+      # privacy question than the one G-2 answered.
+      "author" = {
+        title       = "Author"
+        description = "Provider username of whoever opened it. A handle, never an email (B-1)."
+      }
+      "created_at" = {
+        title  = "Opened"
+        format = "date-time"
+      }
+      "updated_at" = {
+        title  = "Last Updated"
+        format = "date-time"
+      }
+      "merged_at" = {
+        title  = "Merged"
+        format = "date-time"
+      }
+      "closed_at" = {
+        title  = "Closed"
+        format = "date-time"
+      }
+    }
+
+    number_props = {
+      "pr_number" = { title = "Number" }
+    }
+  }
+
+  relations = {
+    # ADR-002. This points at `service`, not at `repository`, because
+    # nothing creates `repository` entities: the git mapping turns a
+    # repository into a `service` directly. Relating to a blueprint
+    # with no entities would leave every pull request unattached.
+    "service" = {
+      title    = "Service"
+      target   = port_blueprint.service.identifier
+      required = true
+      many     = false
+    }
+  }
+
+  ownership = {
+    type = "Inherited"
+    path = "service.project"
+  }
+}
