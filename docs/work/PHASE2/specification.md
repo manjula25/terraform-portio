@@ -329,9 +329,11 @@ the one claimed must also pass.
   pilot's (or sandbox's) repository appears as an entity; `FR-005`'s check (no Ocean-created
   blueprint) still passes.
 - **Named consequences of this decision, not resolved by making it:**
-  - **`D-1` is amended for this one entity type.** `D-1` deferred *additional* blueprints
-    generally; this decision creates one deliberately. `D-1` itself should be updated to record
-    the exception rather than left reading as a blanket deferral that this contradicts silently.
+  - **`D-1` amended, 19 Aug 2026** (`../../../../mayo-port-prd.md` §20, next to `D-1` and `G-9`).
+    `D-1` deferred *additional* blueprints generally; this decision creates one deliberately, and
+    the PRD now records the exception by name rather than reading as a blanket deferral this
+    contradicts silently. `D-1`'s general deferral (deployment, package, incident, API
+    blueprints) is otherwise unchanged.
   - **`G-9` (Port's entity-count limits) becomes live and unresolved.** Pull requests are
     high-churn — far more open/close events than services or repositories ever see. Before
     building this for real (not just the sandbox), someone needs to check Port's plan/licence
@@ -431,7 +433,7 @@ and each is recorded on the requirement it affects.
 | FR-012 | `P-9`, `DM-16` | `S8` | `E-READ` + `E-HUMAN` | `PQ-8` |
 | FR-013 | `P-11`, `BD-2` | `S9` | `E-READ` | `PQ-17` |
 | FR-014 | `P-10`, `IR-6` | `S10` | — | **not applicable — Track A** |
-| FR-015 | Phase 2 exit line — **no `P-*`** | `S5` | `E-HUMAN` for the decision, `E-PLAN`/`E-COUNTER` once planned | **decided**; `D-1` amendment and `G-9` check still needed |
+| FR-015 | Phase 2 exit line — **no `P-*`** | `S5` | `E-HUMAN` for the decision, `E-PLAN`/`E-COUNTER` once planned | **decided**; `D-1` amended 19 Aug 2026 (`../../../../mayo-port-prd.md` §20); `G-9` check still needed |
 
 Every `P-*` requirement in PRD §8 is covered exactly once. Every slice `S1`…`S10` is claimed by
 at least one `FR`. `FR-015` is the only requirement with no `P-*` source, and that asymmetry is
@@ -452,7 +454,7 @@ satisfied by this approval:
 
 | Gate | State | Effect on `writing-plans` |
 |---|---|---|
-| Clarification 1 — the `S5` / `FR-015` exit-test decision | **Closed 19 Aug 2026, manjula: add a `pull_request` blueprint.** Recorded as a decision here, not yet implemented — see `FR-015` above for the named consequences (`D-1` amendment, `G-9` check) this decision creates rather than resolves. | `FR-015` is now plannable to a mechanism: a new custom blueprint plus a mapping change, both shared-model work. |
+| Clarification 1 — the `S5` / `FR-015` exit-test decision | **Closed 19 Aug 2026, manjula: add a `pull_request` blueprint.** Recorded as a decision here, not yet implemented — see `FR-015` above for the named consequences this decision creates rather than resolves. `D-1` amendment done (`../../../../mayo-port-prd.md` §20); `G-9` check still open, requires Port support's written answer or a read of the pilot's actual plan/licence tier. | `FR-015` is now plannable to a mechanism: a new custom blueprint plus a mapping change, both shared-model work — but the plan should name `G-9` as a precondition on the real (non-sandbox) apply, not silently skip it. |
 | Clarification 2 — track (`G-12`) | **Closed 19 Aug 2026, manjula: Track A (GitHub).** Not yet independently verified against the named pilot team's actual estate (`PQ-6`). | `FR-004`, `FR-005`, `FR-006` can now be planned to the GitHub (Ocean) mechanism. `FR-010`/`FR-011` plan to a GitHub Actions dispatch/callback. `FR-014` (merge-freeze surfaced) **does not exist on Track A** — it was Track-B-only by its own boundary note, so this closes it as "not applicable" rather than leaving it open. |
 | Clarification 3 — `PQ-8`, registry permission meaning | **Open.** | `FR-012` plannable only as far as "the grant is recorded and the disclaimer is visible". |
 
