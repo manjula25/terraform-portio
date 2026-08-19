@@ -57,9 +57,13 @@ not reachable from this repository today for any requirement in scope.
 1. **The exposed Port credential (`PORT_CLIENT_ID`/`PORT_CLIENT_SECRET`) has not been confirmed
    rotated.** This is the single highest-priority follow-up outside this repository's own
    evidence boundary — a Port-console action, not something any command here can verify.
-2. **`github-integration.tf` has a live bug** (`"installationAppType" must be string`),
-   discovered incidentally. Out of scope for this delivery; will need fixing before the
-   `S3`/`FR-004` slice starts, itself blocked on the open track decision (`G-12`).
+2. ~~`github-integration.tf` has a live bug~~ — **corrected.** The
+   `"installationAppType" must be string"` error is not a config defect: the
+   `port_integration` resource's own schema says it "manages existing integration and
+   integration mappings, not for creating new integrations," and the error is the expected
+   consequence of the unauthorized apply attempting a create instead of a
+   `terraform import`. No fix needed in the mapping itself; the file's guardrail comment was
+   strengthened to name this exact error so it isn't mistaken for a bug again.
 3. **`var.environments`'s map key and its `stage` field are independently settable** — a
    mismatched pair would silently produce a misleading identifier. Deferred until real stage
    data exists to validate against.

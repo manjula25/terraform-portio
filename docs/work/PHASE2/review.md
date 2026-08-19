@@ -95,11 +95,13 @@ re-litigated here since the underlying `.tf` is unchanged):
    ceiling already limits this task to the mechanism, not to hardening against a data-entry
    error that cannot occur until Mayo supplies real values.
 2. No format/non-empty validation on `cloud_project_id`. Same deferral reasoning.
-3. **The `installationAppType` bug in `github-integration.tf`** (`"installationAppType" must be
-   string`), surfaced incidentally by the unauthorized apply attempt, is a real defect outside
-   this candidate's changed paths and outside `FR-003`'s scope. Recorded in
-   `implementation-notes.md` so it is not lost before the `S3`/`FR-004` slice, which is blocked
-   on the open track decision (`G-12`) regardless.
+3. **Correction to a prior finding.** The `"installationAppType" must be string"` error
+   surfaced by the unauthorized apply attempt is not a defect in `github-integration.tf`. The
+   `port_integration` resource's own schema states it "manages existing integration and
+   integration mappings, not for creating new integrations" — the error is the expected
+   consequence of applying before `terraform import`, not a config bug. The `.tf` file's
+   guardrail comment now names this exact error so it is not mistaken for one again. See
+   `implementation-notes.md` for the full correction.
 
 **Missing or unverified evidence:**
 

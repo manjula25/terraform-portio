@@ -13,6 +13,18 @@
 # Skipping the import and applying straight away will fail or create a
 # second, empty integration. Full sequence in docs/github-ocean-setup.md.
 #
+# The provider's own schema says it outright: "This resource manages
+# existing integration and integration mappings, not for creating new
+# integrations." Apply before import and Port's API rejects the create
+# with a message that looks like a config bug but is not one:
+#
+#   {"ok":false,"error":"invalid_request","message":"\"installationAppType\" must be string"}
+#
+# That field is never set here on purpose — it only matters on the
+# create path this file is not meant to take. Seeing this error means
+# the import step was skipped, not that this mapping needs a fix. Run
+# the import and re-plan.
+#
 # The provider is create-and-override: once this resource is imported,
 # the UI mapping editor is off limits. A UI edit is silently reverted on
 # the next apply, and an edit here silently discards the UI's version.

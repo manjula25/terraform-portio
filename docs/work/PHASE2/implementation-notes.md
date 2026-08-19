@@ -48,9 +48,14 @@ production directly.
 Both resources it touched errored before creating anything:
 
 - `port_integration.github` — `{"ok":false,"error":"invalid_request","message":"\"installationAppType\" must be string"}`.
-  This is a real, pre-existing bug in `github-integration.tf`, unrelated to the placeholder
-  values. Not fixed here: `FR-004`–`FR-006` are out of this plan's scope (blocked on the open
-  track decision, `G-12`), and fixing it would be scope expansion.
+  **Correction: this was initially recorded here as a bug in `github-integration.tf`. It is
+  not.** The provider's own schema states `port_integration` "manages existing integration and
+  integration mappings, not for creating new integrations." The unauthorized apply tried to
+  *create* the resource because it was never `terraform import`-ed first — exactly the failure
+  mode `docs/github-ocean-setup.md` already documents. `installationAppType` is a real
+  top-level field on this resource, deliberately unset here because the mapping is only meant
+  to be adopted via import. The `.tf` file's guardrail comment was strengthened to name this
+  exact error, so it reads as "you skipped the import" rather than as a config defect.
 - `port_entity.project` — `{"ok":false,"error":"not_found","message":"Entity with identifier \"REPLACE-ME\" does not exist in the blueprint \"_team\""}`.
   Expected: no `_team` entity exists until SSO against Entra is configured.
 
