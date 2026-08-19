@@ -1,4 +1,4 @@
-# Handoff — port-idp: PHASE2 checkpoint delivered; GitHub sandbox test in progress
+# Handoff — port-idp: PHASE2 checkpoint delivered; two decisions closed; GitHub sandbox test in progress
 
 ## Repository and worktree identity
 
@@ -7,7 +7,7 @@
   run repo-wide git commands from there.
 - Main checkout: `/Users/manju/Documents/port.io/port-idp`, branch `main` @ `639a679`.
 - Second worktree: `/Users/manju/Documents/port.io/port-idp-PHASE2`, branch
-  `feat/PHASE2-pilot-project-and-environments` @ `6ee92db`.
+  `feat/PHASE2-pilot-project-and-environments` @ `66f7a86`.
 - Both worktrees clean (`git status --short` empty) as of this handoff.
 - **`origin` was repointed mid-session** from `https://github.com/bitcot/port-io.git`
   to `https://github.com/manjula25/terraform-portio.git` (a personal sandbox repo), at
@@ -18,18 +18,19 @@
   `https://github.com/bitcot/port-io/pull/1`, state `OPEN`, confirmed live via
   `gh pr view 1 --repo bitcot/port-io`. If `bitcot/port-io` is the real intended
   destination for the Mayo pilot deliverable, that PR is the one to review/merge —
-  it is untouched by the later origin change and does not include the two follow-up
-  commits made after PR creation (a mischaracterization correction, see below) unless
-  someone re-pushes the branch there.
+  it is untouched by the later origin change and does **not** include any of the four
+  commits made after PR creation (a mischaracterization correction, the sandbox test
+  docs, and the two decision closures below) unless someone re-pushes the branch
+  there.
 
-## Two distinct threads of work happened in this session — do not conflate them
+## Three distinct threads happened in this session — do not conflate them
 
 ### 1. PHASE2 (Mayo pilot) — checkpoint complete, delivered
 
-The formal ADLC lifecycle ran end to end for `PHASE2` (scope: `FR-001`, `FR-002`,
-`FR-003` only, plan-diff evidence rung — see `docs/work/PHASE2/specification.md`'s
-Approval section for why this subset). All artifacts are committed on
-`feat/PHASE2-pilot-project-and-environments`:
+The formal ADLC lifecycle ran end to end for `PHASE2`'s original scope (`FR-001`,
+`FR-002`, `FR-003` only, plan-diff evidence rung — see
+`docs/work/PHASE2/specification.md`'s Approval section for why this subset). All
+artifacts are committed on `feat/PHASE2-pilot-project-and-environments`:
 
 - `docs/work/PHASE2/implementation-plan.md` — 6 tasks, all executed.
 - `docs/work/PHASE2/implementation-notes.md` — deviations, and a corrected finding
@@ -38,9 +39,9 @@ Approval section for why this subset). All artifacts are committed on
 - `docs/work/PHASE2/review.md` — four-axis review, all PASS, no blocking findings.
 - `docs/work/PHASE2/delivery.md` — full delivery summary, non-claims, remaining risks.
 
-**Status: done for this scope.** Nothing further is required here unless the user asks
-to plan the next slice (`S3`/`FR-004`+, which needs the open track decision `G-12` —
-GitHub vs. Azure DevOps — closed first).
+**Status: done for this original scope.** Two open decisions that blocked the rest of
+`PHASE2` were closed later in the same session — see thread 2 below — but neither has
+been *implemented* yet.
 
 **One corrected finding worth knowing about:** an early note in this session called
 `"installationAppType" must be string"` a "bug" in `github-integration.tf`. It is not.
@@ -51,10 +52,44 @@ result of applying before `terraform import`. This was corrected across
 guardrail comment now quotes the exact error. If a future session sees this error
 again, the fix is to import, not to edit the mapping.
 
-### 2. Personal GitHub-integration sandbox test — in progress, not yet applied
+### 2. Two PHASE2 decisions closed, not yet implemented
 
-Separate from PHASE2, testing the GitHub (Ocean) integration mechanism for real,
-against a personal sandbox repo, since PHASE2 itself is blocked on `G-12`.
+Both recorded in `docs/work/PHASE2/specification.md` (Clarifications, traceability
+table, Approval section) and `docs/work/PHASE2/slices.md` (Status, requirement
+coverage, the relevant slice, Approval section) — commits `e227f3f` and `66f7a86`.
+
+**`G-12` (git provider track) — closed: Track A (GitHub).**
+- Unblocks `FR-004`, `FR-005`, `FR-006` (the GitHub integration mechanism) and
+  `FR-010`/`FR-011` (a GitHub Actions dispatch/callback) to be planned for real.
+- Closes `FR-014`/`S10` (merge-freeze surfaced) as **not applicable** — it was
+  Track-B-only by its own boundary note.
+- **Caveat, not yet resolved:** `PQ-6` frames this as a fact to verify against the
+  named pilot team's actual estate, not a preference — `IR-2` (Mayo's own IRIS
+  findings) found nine repositories elsewhere in the org running on Azure DevOps.
+  This decision is recorded as made, but **not yet independently verified against
+  the real pilot's actual git provider.** Flag this before treating it as final for
+  an actual Mayo engagement.
+
+**`FR-015`/`S5` (the pull-request exit-test gap) — closed: add a custom
+`pull_request` blueprint.**
+- Of three options (build a blueprint / link out / drop from exit test), the first
+  was chosen.
+- **This decision creates two follow-on items rather than resolving them:**
+  1. `D-1` (which deferred *additional* blueprints generally) needs amending to
+     record this deliberate exception.
+  2. `G-9` (Port's entity-count limits) becomes live and unresolved — pull requests
+     are high-churn, and someone should check Port's plan/licence entity limits
+     against the pilot's realistic PR volume **before** building this for real.
+- **Nothing has been implemented for this decision.** It touches
+  `modules/core-blueprints/` — a shared-model change, per
+  `docs/agents/project-policy.md` §Risk area 6 — and needs its own
+  `writing-plans` → `implement` → review pass, with the `G-9` check done first.
+
+### 3. Personal GitHub-integration sandbox test — in progress, not yet applied
+
+Separate from `PHASE2` proper, testing the GitHub (Ocean) integration mechanism for
+real, against a personal sandbox repo (this predates the `G-12` closure above, and
+was the practical motivation for closing it).
 
 **What's done:**
 - GitHub App installed on `manjula25/terraform-portio` (a personal repo the user
@@ -63,8 +98,8 @@ against a personal sandbox repo, since PHASE2 itself is blocked on `G-12`.
   offered "No repositories" with a disabled "Update access" button, because the
   account was a repo admin on `bitcot/port-io` but not an **org owner**. This gotcha
   and the working alternative are documented in
-  `docs/github-integration-sandbox-setup.md` and `README.md` §5 (both pushed to
-  `main`, commits `7900688`, `639a679`).
+  `docs/github-integration-sandbox-setup.md` and `README.md` §5 (pushed to `main`,
+  commits `7900688`, `639a679`).
 - Real installation ID `154905752` found and used (not the data-source's display
   name — that distinction is also documented).
 - `terraform import port_integration.github 154905752` — **succeeded**.
@@ -81,11 +116,16 @@ and `["prod"]` would likely also fail to create, since they depend on
 `port_entity.project`'s identifier. `port_integration.github`'s update is independent
 of the others and should succeed regardless.
 
-**First concrete action for the next session:** ask the user for a real team name that
-exists in their sandbox Port organization, update `owning_team` in
-`projects/mayo-pilot/terraform.tfvars` (local file, `sed` or manual edit — it's
-gitignored, no commit needed), re-`terraform plan`, confirm `teams = ["<real-team>"]`
-in the diff, then get explicit confirmation before `terraform apply`.
+**First concrete action for the next session (pick one, or both):**
+1. **Continue the sandbox test:** ask the user for a real team name that exists in
+   their sandbox Port organization, update `owning_team` in
+   `projects/mayo-pilot/terraform.tfvars` (local, gitignored, no commit needed),
+   re-`terraform plan`, confirm `teams = ["<real-team>"]` in the diff, then get
+   explicit confirmation before `terraform apply`.
+2. **Or start planning the newly-unblocked PHASE2 work:** `writing-plans` for
+   `FR-004`/`FR-005`/`FR-006` (git integration, now Track A) and/or `FR-015` (the
+   `pull_request` blueprint, after the `G-9` entity-limit check) as the next
+   plannable slices, per the updated `specification.md`.
 
 ## A real risk from earlier in this session — not yet confirmed resolved
 
@@ -118,15 +158,16 @@ this specific incident, it's closed as "disclosed, nothing created."
   don't repeat it. The sandbox repo (`manjula25/terraform-portio`) has no such gate
   configured, but treat every `apply` as a real, confirmable action regardless.
 - `docs/agents/lifecycle.md` §5 tracks work-item stage; it has not been updated to
-  reflect PHASE2's now-complete delivery status — worth updating in a future session
-  if `PHASE1` or a new `PHASE3` work item is picked up, so the table stays accurate.
+  reflect PHASE2's now-complete delivery status or the two decision closures — worth
+  updating in a future session if `PHASE1` or a new `PHASE3` work item is picked up,
+  so the table stays accurate.
 
 ## Suggested skills for the next session
 
-- No lifecycle skill is needed to continue the GitHub sandbox test — it's ad hoc
+- To act on either newly-closed decision (`FR-004`–`FR-006`, or `FR-015`'s
+  `pull_request` blueprint): `writing-plans`, scoped to the specific requirement,
+  reading the updated `specification.md`/`slices.md` first.
+- To continue the GitHub sandbox test: no lifecycle skill needed, it's ad hoc
   verification, not a formal work item.
-- If the user wants to plan the next PHASE2 slice (`FR-004`+), that needs the `G-12`
-  track decision closed first; then `writing-plans` again, scoped to the next
-  plannable subset per `docs/work/PHASE2/specification.md`.
 - If picking up `PHASE1` (currently `decomposed`, no `specification.md`), the next
   skill per `docs/agents/lifecycle.md` §5 is `to-spec`.
