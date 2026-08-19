@@ -61,3 +61,8 @@ output "team_blueprint" {
   EOT
   value       = "_team"
 }
+
+output "pull_request_blueprint" {
+  description = "Identifier of the pull_request blueprint (FR-015)."
+  value       = port_blueprint.pull_request.identifier
+}

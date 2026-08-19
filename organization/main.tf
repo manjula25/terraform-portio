@@ -28,11 +28,12 @@ module "core_blueprints" {
 output "blueprints" {
   description = "Blueprint identifiers the project stacks build on."
   value = {
-    project     = module.core_blueprints.project_blueprint
-    environment = module.core_blueprints.environment_blueprint
-    service     = module.core_blueprints.service_blueprint
-    repository  = module.core_blueprints.repository_blueprint
-    ai_usage    = module.core_blueprints.ai_usage_blueprint
+    project      = module.core_blueprints.project_blueprint
+    environment  = module.core_blueprints.environment_blueprint
+    service      = module.core_blueprints.service_blueprint
+    repository   = module.core_blueprints.repository_blueprint
+    pull_request = module.core_blueprints.pull_request_blueprint
+    ai_usage     = module.core_blueprints.ai_usage_blueprint
 
     # Registries. B-6: these record what exists and who is approved.
     # They do not grant, gate, or block.
