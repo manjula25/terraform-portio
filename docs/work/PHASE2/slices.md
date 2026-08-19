@@ -314,10 +314,13 @@ inputs are not.
 the org and repository list, and have someone install the integration in the UI. That opens
 S1, S3, S4 and the path to S6.
 
-**S5 is decided, not yet built.** Phase 2's exit test promised pull requests and no blueprint
-modeled one; the decision (add a custom `pull_request` blueprint) is recorded, but
-implementing it is new shared-model work, and `G-9`'s entity-limit question should be checked
-before it's built for real.
+**S5's plan is implemented and reviewed; the relation decision is recorded.** Phase 2's exit
+test promised pull requests and no blueprint modeled one; the decision (add a custom
+`pull_request` blueprint) is recorded, and `implementation-plan-fr-015.md`'s Tasks 0-5 — the
+blueprint, its outputs, and the GitHub mapping — are implemented and reviewed (spec PASS,
+code-quality APPROVED). What the blueprint relates to, and why, is recorded in
+`specification.md`'s `FR-015` and `ADR-002`, not restated here. `G-9`'s entity-limit question
+should still be checked before this is built for real (non-sandbox).
 
 **The rehearsal organization stops being optional here.** It was deferred while the catalog
 held zero entities, which was correct. This is the phase that puts real entities in, and a
