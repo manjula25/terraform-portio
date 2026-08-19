@@ -13,3 +13,4 @@ A decision already recorded as a numbered requirement in `../../../mayo-port-prd
 | Record | Status |
 |---|---|
 | [ADR-001](ADR-001-per-stack-provider-and-state.md) — provider and backend configuration duplicated per stack | Accepted |
+| [ADR-002](ADR-002-pull-request-relates-to-service.md) — `pull_request` relates to `service`, not `repository` | Accepted |
