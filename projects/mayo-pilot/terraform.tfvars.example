@@ -20,6 +20,24 @@ repo_url      = "https://github.com/REPLACE-ME-org"
 teams_channel = "https://teams.microsoft.com/l/channel/REPLACE-ME"
 start_date    = "2026-09-01T00:00:00Z"
 
+# Blocked on Mayo engineering: the list of stages that actually run,
+# with regions and GCP project IDs. One entry per running stage and no
+# others (FR-003).
+environments = {
+  dev = {
+    title            = "Pilot — Dev"
+    stage            = "dev"
+    region           = "us-central1"
+    cloud_project_id = "REPLACE-ME-d"
+  }
+  prod = {
+    title            = "Pilot — Prod"
+    stage            = "prod"
+    region           = "us-central1"
+    cloud_project_id = "REPLACE-ME-p"
+  }
+}
+
 # From the Port UI after installing the GitHub (Ocean) data source.
 github_installation_id = "REPLACE-ME"
 github_organizations   = ["REPLACE-ME-org"]

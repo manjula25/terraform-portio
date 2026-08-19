@@ -46,28 +46,12 @@ resource "port_entity" "project" {
 #
 # Only the stages that actually exist. An environment entity with
 # nothing deployed to it is a lie the scorecard will later reward.
+# The set arrives via var.environments (FR-003) rather than a
+# hardcoded pair, so the stack cannot plan until Mayo supplies the
+# stages that actually run.
 ####################################################################
-locals {
-  environments = {
-    dev = {
-      title  = "Pilot — Dev"
-      stage  = "dev"
-      region = "us-central1"
-    }
-    # DM-2/IR-4: the enum is dev | test | stage | prod. Four values,
-    # and Mayo's word is "prod", not "production" — its estate codes
-    # the four GCP projects d/t/s/p. Using the plan's old "production"
-    # here would fail the apply against the required enum.
-    prod = {
-      title  = "Pilot — Prod"
-      stage  = "prod"
-      region = "us-central1"
-    }
-  }
-}
-
 resource "port_entity" "environment" {
-  for_each = local.environments
+  for_each = var.environments
 
   identifier = "${var.project_identifier}-${each.key}"
   title      = each.value.title
@@ -75,9 +59,10 @@ resource "port_entity" "environment" {
 
   properties = {
     string_props = {
-      "stage"  = each.value.stage
-      "cloud"  = "gcp"
-      "region" = each.value.region
+      "stage"            = each.value.stage
+      "cloud"            = "gcp"
+      "region"           = each.value.region
+      "cloud_project_id" = each.value.cloud_project_id
     }
   }
 

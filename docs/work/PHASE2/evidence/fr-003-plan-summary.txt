@@ -1,0 +1,4 @@
+Plan: 4 to add, 0 to change, 0 to destroy.
+Confirms no delete or replace action anywhere in the plan (jq -e check on
+[.resource_changes[].change.actions[]] for "delete"/"replace" corroborated
+by this summary line).
