@@ -1,0 +1,12 @@
+[
+  {
+    "address": "port_entity.environment[\"dev\"]",
+    "stage": "dev",
+    "cloud_project_id": null
+  },
+  {
+    "address": "port_entity.environment[\"prod\"]",
+    "stage": "prod",
+    "cloud_project_id": null
+  }
+]

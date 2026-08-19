@@ -490,3 +490,26 @@ against when `PQ-17` closes.
 
 **Phase 2's exit test is not approached by this plan and is not approachable until
 Clarification 1 is decided.**
+
+## Evidence reached
+
+Recorded after Task 6's full gate run, 19 Aug 2026.
+
+- **Highest rung reached: plan-diff.** `./scripts/verify.sh projects/mayo-pilot` and
+  `./scripts/verify.sh organization` both pass every available rung: `terraform fmt -check
+  -recursive`, `terraform init`, `terraform validate`, `terraform plan`, and — for
+  `organization` — the no-destroy guard on the shared model.
+- **`E-READ`, `E-COUNTER` and `E-HUMAN` were not reached for any requirement.** No `terraform
+  apply` was run as part of this plan's approved tasks. (One unauthorized manual `apply` attempt
+  was made outside this plan's tasks, against production, with placeholder values; both
+  resources it touched — `port_integration.github` and `port_entity.project` — errored before
+  creating anything, confirmed via `terraform state list` returning empty. Nothing was written
+  to Port. This is not evidence for any requirement and is recorded here only so it is not
+  mistaken for one.)
+- **`FR-002`'s inherited-ownership half is unreached.** Resolved team ownership on a child
+  entity is computed by Port and never appears in a `terraform plan`; only the negative half
+  (no child carries its own `teams` property) was asserted, in Task 5.
+- **`conftest`/OPA, `tflint`, runtime read-back, and unit tests are unavailable, not skipped by
+  choice.** The first two are not installed; runtime read-back has no non-production
+  organization to run against (`G-6`, a Phase 0 gate); there is no test harness in this
+  repository.

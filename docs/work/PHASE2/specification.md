@@ -16,9 +16,13 @@ content rather than wording:
 
 - **Clarification 1 (`FR-015`, the `S5` exit test)** — `FR-015` still has no success criteria.
   It cannot be planned, and a plan that includes it is inventing acceptance.
-- **Clarification 2 (the track, `G-12`)** — decides the mechanism in `FR-004`, `FR-010` and
-  `FR-011`, and whether `FR-014` exists. Six of fifteen requirements change content with the
-  answer, so a plan written before it lands is rewritten after.
+- **Clarification 2 (the track, `G-12`) — CLOSED, 19 Aug 2026, manjula: Track A (GitHub).**
+  `PQ-6` frames this as "which git provider does the pilot *actually* use" — a fact to verify
+  against the real Mayo pilot's estate, not a preference to pick. `IR-2` found nine CDH Content
+  Automation repositories running on Azure DevOps with no `.github/` workflows at all, so this
+  decision **should still be confirmed against the named pilot team's actual usage** before it
+  is treated as final for the real engagement — it is not re-opened by that caution, but it is
+  not yet independently verified against Mayo's estate either. See the effect table below.
 
 Approving a specification that names its own open questions is the correct move; treating those
 questions as answered because the document is approved is not.
@@ -304,7 +308,7 @@ the one claimed must also pass.
   reason.
 - **Non-claims:** Does not enforce or lift a freeze; Port reflects the flag, it does not own it.
 
-### FR-015: The stated exit condition is either met or formally amended
+### FR-015: The stated exit condition is either met or formally amended — **DECIDED, 19 Aug 2026, manjula: add a `pull_request` blueprint**
 
 - **Behavior:** Phase 2's exit test — "their services, their repositories and pull requests,
   one action they actually use" — is satisfied in full, or amended by whoever owns the PRD.
@@ -313,18 +317,34 @@ the one claimed must also pass.
   nothing in PRD §5 models a pull request, `P-4`/`FR-005` forbids the integration's own
   pull-request blueprint, and `D-1` defers additional blueprints.
 - **Slice coverage:** `S5`.
-- **Success criteria:** *not statable until the decision below is made.* Acceptance criteria are
-  derived from the chosen option, not before it.
-- **Evidence label:** `E-HUMAN` — a recorded decision, then whichever label the chosen option
-  implies.
-- **Boundary and errors:** As written, **the exit condition cannot currently be met**. The three
-  options and their costs are set out in `slices.md` `S5`: add a `pull_request` blueprint
-  (honest, contradicts `D-1`, and makes the entity-limit question `G-9` live immediately); link
-  out per repository (cheapest, shows a link rather than the pull requests, passes the letter
-  and arguably not the spirit); or drop it from the exit test (defensible if the pilot does not
-  care, but it must be said to the sponsor rather than quietly omitted).
-- **Non-claims:** This is a PRD amendment, not a local choice, and this specification does not
-  make it. Discovering it at the demonstration is far worse than deciding it now.
+- **Decision:** add a **custom** `pull_request` blueprint to the shared model
+  (`modules/core-blueprints/`), then extend the GitHub (Ocean) mapping
+  (`projects/mayo-pilot/github-integration.tf`) to map GitHub's `pull-request` kind onto it —
+  the same pattern already used for `repository`/`service` (Ocean's own default
+  `githubPullRequest` blueprint stays off; `FR-005`'s "no integration-created blueprint" rule is
+  not violated by a *custom* one we point the mapping at).
+- **Success criteria (now statable):** a `pull_request` blueprint exists with, at minimum, a
+  title, state (open/merged/closed), URL, author, and timestamps, related to `repository`; the
+  GitHub mapping's `pull-request` kind resource maps onto it; a real pull request from the
+  pilot's (or sandbox's) repository appears as an entity; `FR-005`'s check (no Ocean-created
+  blueprint) still passes.
+- **Named consequences of this decision, not resolved by making it:**
+  - **`D-1` is amended for this one entity type.** `D-1` deferred *additional* blueprints
+    generally; this decision creates one deliberately. `D-1` itself should be updated to record
+    the exception rather than left reading as a blanket deferral that this contradicts silently.
+  - **`G-9` (Port's entity-count limits) becomes live and unresolved.** Pull requests are
+    high-churn — far more open/close events than services or repositories ever see. Before
+    building this for real (not just the sandbox), someone needs to check Port's plan/licence
+    entity limits against realistic PR volume for the pilot's repositories. This specification
+    does not resolve `G-9`; it flags that this decision is what makes it matter.
+- **Evidence label:** `E-HUMAN` for this decision (recorded here); `E-PLAN` for the blueprint
+  and mapping change once planned; `E-COUNTER` for confirming the mapping's `pull-request` kind
+  resolves cleanly on a real sync, the same way `FR-008` checks the `repository` kind.
+- **Non-claims:** This specification records the decision; it does not implement the blueprint
+  or the mapping change. That is new work for a future plan — modifying
+  `modules/core-blueprints/` is a shared-model change and requires the worktree policy in
+  `docs/agents/workflow.md` §Worktree policy, plus its own specification-review and code-quality
+  pass, the same as any other shared-model change. It also does not resolve `G-9`.
 
 ## Non-functional constraints
 
@@ -400,9 +420,9 @@ and each is recorded on the requirement it affects.
 | FR-001 | `P-1` | `S1` | `E-READ` | `G-11` |
 | FR-002 | `P-1`, `DM-1` | `S1` | `E-READ` | SSO; `PQ-10` in substance |
 | FR-003 | `P-2`, `DM-2` | `S2` | `E-READ` | stage list |
-| FR-004 | `P-3` | `S3` | `E-READ` + `E-HUMAN` | `G-12`; org name; UI handshake |
-| FR-005 | `P-4` | `S3` | `E-READ` | `G-12` |
-| FR-006 | `P-4` | `S3` | `E-READ` + `E-GREP` | `G-12` |
+| FR-004 | `P-3` | `S3` | `E-READ` + `E-HUMAN` | org name; UI handshake |
+| FR-005 | `P-4` | `S3` | `E-READ` | org name; UI handshake |
+| FR-006 | `P-4` | `S3` | `E-READ` + `E-GREP` | org name; UI handshake |
 | FR-007 | `P-5` | `S4` | `E-COUNTER` | repository list |
 | FR-008 | `P-6` | `S4` | `E-COUNTER` | `FR-004` |
 | FR-009 | `P-7` | `S4` | `E-READ` | `FR-004` |
@@ -410,8 +430,8 @@ and each is recorded on the requirement it affects.
 | FR-011 | `P-8a`, `BD-5`, `BS-15`–`BS-17` | `S7` | `E-READ` | `FR-010`; callback credential |
 | FR-012 | `P-9`, `DM-16` | `S8` | `E-READ` + `E-HUMAN` | `PQ-8` |
 | FR-013 | `P-11`, `BD-2` | `S9` | `E-READ` | `PQ-17` |
-| FR-014 | `P-10`, `IR-6` | `S10` | `E-READ` or `E-HUMAN` | `G-12` |
-| FR-015 | Phase 2 exit line — **no `P-*`** | `S5` | `E-HUMAN` | sponsor decision |
+| FR-014 | `P-10`, `IR-6` | `S10` | — | **not applicable — Track A** |
+| FR-015 | Phase 2 exit line — **no `P-*`** | `S5` | `E-HUMAN` for the decision, `E-PLAN`/`E-COUNTER` once planned | **decided**; `D-1` amendment and `G-9` check still needed |
 
 Every `P-*` requirement in PRD §8 is covered exactly once. Every slice `S1`…`S10` is claimed by
 at least one `FR`. `FR-015` is the only requirement with no `P-*` source, and that asymmetry is
@@ -432,10 +452,15 @@ satisfied by this approval:
 
 | Gate | State | Effect on `writing-plans` |
 |---|---|---|
-| Clarification 1 — the `S5` / `FR-015` exit-test decision | **Open.** Owned by the sponsor; it is a PRD amendment. | `FR-015` is out of plan scope. Nothing in a plan may claim to satisfy the Phase 2 exit test until it closes. |
-| Clarification 2 — track (`G-12`) | **Open.** Mayo engineering. | `FR-004`, `FR-005`, `FR-006`, `FR-010`, `FR-011`, `FR-014` cannot be planned to a mechanism. Plan them to the outcome or leave them for a second pass. |
+| Clarification 1 — the `S5` / `FR-015` exit-test decision | **Closed 19 Aug 2026, manjula: add a `pull_request` blueprint.** Recorded as a decision here, not yet implemented — see `FR-015` above for the named consequences (`D-1` amendment, `G-9` check) this decision creates rather than resolves. | `FR-015` is now plannable to a mechanism: a new custom blueprint plus a mapping change, both shared-model work. |
+| Clarification 2 — track (`G-12`) | **Closed 19 Aug 2026, manjula: Track A (GitHub).** Not yet independently verified against the named pilot team's actual estate (`PQ-6`). | `FR-004`, `FR-005`, `FR-006` can now be planned to the GitHub (Ocean) mechanism. `FR-010`/`FR-011` plan to a GitHub Actions dispatch/callback. `FR-014` (merge-freeze surfaced) **does not exist on Track A** — it was Track-B-only by its own boundary note, so this closes it as "not applicable" rather than leaving it open. |
 | Clarification 3 — `PQ-8`, registry permission meaning | **Open.** | `FR-012` plannable only as far as "the grant is recorded and the disclaimer is visible". |
 
-So the plannable set today is `FR-001`, `FR-002`, `FR-003`, and `FR-013` when GCP access lands —
-each still gated on a Mayo input listed under Non-functional constraints. That is what a first
-plan should cover, and it should say plainly what it leaves out.
+With `G-12` and `FR-015`'s decision both closed, the plannable set expands to `FR-004`,
+`FR-005`, `FR-006` (the git integration mechanism and its two decisive settings), `FR-013` when
+GCP access lands (`PQ-17`), and `FR-015` itself (the `pull_request` blueprint and mapping
+change — a shared-model change requiring its own plan, worktree, and review pass, and blocked
+in practice on checking `G-9`'s entity limits first). `FR-007`–`FR-009` remain additionally
+blocked on the pilot's actual repository list; `FR-010`/`FR-011` remain blocked on the task
+choice and a CI dispatch/callback credential. `FR-012` remains blocked on `PQ-8`. `FR-001`,
+`FR-002`, `FR-003` are already delivered — see `docs/work/PHASE2/delivery.md`.

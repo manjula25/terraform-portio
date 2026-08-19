@@ -1,0 +1,14 @@
+[
+  {
+    "address": "port_entity.environment[\"dev\"]",
+    "action": ["create"],
+    "stage": "dev",
+    "cloud_project_id": "REPLACE-ME-d"
+  },
+  {
+    "address": "port_entity.environment[\"prod\"]",
+    "action": ["create"],
+    "stage": "prod",
+    "cloud_project_id": "REPLACE-ME-p"
+  }
+]

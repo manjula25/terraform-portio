@@ -1,0 +1,6 @@
+{
+  "FR-001_client_status_tier_non_empty": true,
+  "FR-002_no_child_carries_team": true,
+  "FR-002_team_set_exactly_once_on_project": true,
+  "notes": "All three plan-rung assertions run against the tfplan produced for FR-003's GREEN capture. No source change was required in projects/mayo-pilot/main.tf: the project entity already sets client/status/tier and teams only at project level. FR-002's inherited-ownership DISPLAY half is E-READ only and is not evidenced here — it requires an apply and a non-production organization, neither of which exist."
+}

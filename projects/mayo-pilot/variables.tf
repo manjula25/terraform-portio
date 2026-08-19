@@ -62,6 +62,32 @@ variable "start_date" {
   default     = null
 }
 
+variable "environments" {
+  description = <<-EOT
+    The stages this project actually deploys to, keyed by stage. One
+    entry per running stage and no others: an environment entity with
+    nothing deployed to it is scored by S-1 as if it were real
+    (FR-003). cloud_project_id records the GCP project this
+    environment IS — not the Port project (O-7, P-11).
+
+    Cloud is not a per-entry field here: FR-013/BD-2/P-11 make this
+    pilot GCP-only, so it is hardcoded "gcp" on the resource rather
+    than a knob on this variable. The blueprint's own cloud enum
+    (aws/azure/gcp/on-prem) stays flexible for later clients.
+  EOT
+  type = map(object({
+    title            = string
+    stage            = string
+    region           = string
+    cloud_project_id = string
+  }))
+
+  validation {
+    condition     = alltrue([for e in var.environments : contains(["dev", "test", "stage", "prod"], e.stage)])
+    error_message = "stage must be one of: dev, test, stage, prod (DM-2, corrected by IR-4)."
+  }
+}
+
 ####################################################################
 # GitHub (Ocean) integration
 ####################################################################
