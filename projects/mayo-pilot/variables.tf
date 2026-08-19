@@ -126,3 +126,50 @@ variable "github_repo_search" {
   EOT
   type        = string
 }
+
+####################################################################
+# Google Cloud (Ocean) integration
+#
+# Blocked on PQ-1 (how data leaves Mayo's network) and PQ-17 (VPC
+# Service Controls reachability). Do not set these variables until
+# both questions are closed and the GCP integration is installed in
+# the Port UI. See integration-gcp.tf header for the full gate list.
+####################################################################
+
+variable "gcp_installation_id" {
+  description = <<-EOT
+    The installation ID of the Google Cloud (Ocean) data source, taken
+    from the Port UI after the integration is installed. Lowercase
+    letters, numbers and dashes only.
+
+    Terraform does not install the integration. It adopts the mapping
+    of an integration that already exists, via `terraform import`:
+
+      terraform import port_integration.gcp <installation-id>
+
+    The service account key is set at install time in the Port UI,
+    not in Terraform — same pattern as GitHub. See BS-14 for the
+    access scope: viewer-level read per GCP project, never at folder
+    or organisation level.
+  EOT
+  type        = string
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]+$", var.gcp_installation_id))
+    error_message = "gcp_installation_id must contain only lowercase letters, numbers and dashes."
+  }
+}
+
+variable "gcp_project_filter" {
+  description = <<-EOT
+    JQ expression filtering which GCP projects are ingested. Start
+    narrow — the pilot's projects only — and widen once the ingestion
+    counters look clean. Ingesting every project in the org creates
+    environments for stages that don't exist in the pilot.
+
+    Examples:
+      ".display_name | startswith(\"iris-\")"
+      ".labels.port-pilot == \"true\""
+  EOT
+  type        = string
+}
