@@ -120,6 +120,20 @@ terraform import port_integration.github <installation-id>
 terraform plan
 ```
 
+Two gotchas worth knowing before doing this for real, both hit while
+testing against a sandbox repo — full walkthrough and troubleshooting
+in `docs/github-integration-sandbox-setup.md`:
+
+- **Installing the GitHub App into an org needs org-owner permission.**
+  Repo admin is not enough — GitHub silently offers only "No
+  repositories" with a disabled "Update access" button in that case.
+- **The `<installation-id>` is not the data source's display name.**
+  It's a numeric ID, found on the GitHub App's own installation page or
+  via Port's `GET /v1/integration` API. Skipping the import (or using
+  the wrong value) surfaces as `"installationAppType" must be string"`
+  — expected provider behavior when the resource is created instead of
+  imported, not a config defect.
+
 ### 6. CI
 
 Repository **secrets**: `PORT_CLIENT_ID`, `PORT_CLIENT_SECRET`.
