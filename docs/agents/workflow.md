@@ -28,7 +28,13 @@ Run from inside a stack directory (`organization/` or `projects/<name>/`) unless
 - Full gate: the same for every stack — `organization/` and each `projects/*/`
 - Verification bundle: `./scripts/verify.sh [stack]` from the repository root, which runs the available rungs in order and reports each exit code
 
-Deliberately absent, because they are not installed — do not write them into a plan as if they run: unit tests, `tflint`, `conftest`/OPA, and any runtime smoke check. `scripts/verify.sh` names each as skipped rather than silently omitting it. Terraform is pinned to 1.9.8 in CI; match it locally.
+Deliberately absent, because they are not installed — do not write them into a plan as if they run: unit tests, `tflint`, `conftest`/OPA, and any runtime smoke check. `scripts/verify.sh` names each as skipped rather than silently omitting it. Terraform is pinned to 1.15.8 in CI; match it locally.
+
+The pin moved up from 1.9.8 on 2026-08-18. Terraform refuses to read state written
+by a newer version, and `organization/` state was created by 1.15.8, so the choice was
+to align CI up or rebuild state from nine re-imports. CI had never run at that point
+(no remote existed), so nothing depended on the old pin. Changing it back now means
+recreating the state file, not just editing a number.
 
 Credentials must be present in the environment for `init` and `plan` to reach Port:
 

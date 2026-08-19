@@ -45,6 +45,69 @@ The design that produced it lives one directory up, outside this repository. `..
 4. **Ingest AI usage.** The pipeline reads each provider, prices tokens against a versioned rate card, upserts `ai_usage` idempotently on `provider + actor_ref + period_start`, and records per-source freshness.
 5. **Claim an agent.** The pipeline auto-creates an agent record on first observed spend, flagged unregistered; a human claims ownership through an action.
 
+## Development lifecycle
+
+Work moves through the skills in `.claude/skills/engineering/`. `docs/agents/workflow.md`
+holds the operational detail — branch names, commands, worktree policy, review topology.
+This is the map of which skill owns which step and what each one is allowed to assume.
+
+| Step | Skill | Produces | Owns the question |
+|---|---|---|---|
+| 1 | `work-item-context` | `docs/work/{ID}/context.md` | What is this one requirement, and where does it come from? |
+| 2 | `grilling` / `grill-with-docs` | pressure-tested assumptions | What are we wrong about before it costs anything? |
+| 3 | `domain-modeling` | glossary and ADR entries | What do these words mean, and which invariant governs them? |
+| 4 | `to-prd` | `docs/work/{ID}/prd.md` | What are we building and why? **Normally skipped — see below** |
+| 5 | `to-slices` | `docs/work/{ID}/slices.md` | What is the smallest thing we can demonstrate end to end? |
+| 6 | `to-spec` | `docs/work/{ID}/specification.md` | What does "correct" mean, measurably? |
+| 7 | `to-tickets` | `docs/work/{ID}/tickets/*.md` | What order does the work unblock in? |
+| 8 | `codebase-design` | module interfaces and seams | Where does this cut into the repository? |
+| 9 | `writing-plans` | `docs/work/{ID}/implementation-plan.md` | Which exact files, commands, and expected results? |
+| 10 | `using-git-worktrees` | an isolated branch and worktree | Where does this change happen without touching the shared tree? |
+| 11 | `implement` | one accepted candidate | Build it, one slice at a time, RED before GREEN |
+| 12 | `tdd` | the RED-to-GREEN cycle inside a slice | Did the test fail first, for the stated reason? |
+| 13 | `ponytail` | simplification findings | What complexity can be removed before review? |
+| 14 | `code-review` | review findings | Does it meet the standard and the spec? |
+| 15 | `verification-before-completion` | `docs/work/{ID}/verification.md` | What was actually run, and what does the output say? |
+| 16 | `finishing-a-development-branch` | a merged branch | Is it landed and cleaned up? |
+| 17 | `handoff` | a handoff note | What does the next person need that is not in the code? |
+
+Supporting skills, used when the situation calls for them rather than in sequence:
+`diagnosing-bugs` for a defect that needs a root cause before a fix,
+`improve-codebase-architecture` for structural debt, and
+`setup-agentic-workflow` for re-provisioning this configuration itself.
+
+### The standing shortened flow
+
+Steps 1 through 4 are **normally skipped in this repository**, and that is the rule
+rather than an exception. `../mayo-port-prd.md` is already an approved specification
+with numbered requirements and checkable "Done when" lines, and
+`../mayo-port-build-spec.md` is its implementation companion. Re-deriving requirements
+here would duplicate them and create an authority conflict with the authority order in
+`docs/agents/domain.md`.
+
+So the normal entry point is `work-item-context` capturing **one requirement or one
+phase**, citing the PRD as its source and quoting the "Done when" line as supplied
+acceptance criteria — then straight to `to-slices`.
+
+Run the full front end only for something the PRD does not cover. If discovery
+contradicts the PRD, that is a PRD amendment with its own decision. It is not a local
+override, and it is not something to settle inside a work item.
+
+### Terraform changes the meaning of a slice
+
+Two adaptations, because this repository configures a SaaS product rather than
+building an application:
+
+- **A slice is demonstrable in Port, not in a test suite.** There is no unit-test
+  runner here (`docs/agents/workflow.md` lists what is deliberately absent). `tdd`'s
+  RED-to-GREEN maps onto `terraform plan`: the expected failing observation is a plan
+  that does not yet contain the resource, and GREEN is the plan or apply that does.
+  A slice whose only evidence is "the file parses" is not demonstrable.
+- **`implement` must respect create-and-override.** A slice that touches a blueprint
+  another writer owns is not a code change, it is a data migration. Check the writer
+  table in `../mayo-port-build-spec.md` §1.3 before planning one, and back up the live
+  blueprint and its entities first.
+
 ## Invariants
 
 1. **Metadata only.** Names, links, counts, dollars. Never PHI, never secrets, never AI prompt or completion content. Concretely: `includedFiles` is never set in an integration mapping. Crossing this puts Port inside the PHI boundary and reopens the entire compliance posture.

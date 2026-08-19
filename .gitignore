@@ -18,3 +18,12 @@ plan.txt
 crash.log
 crash.*.log
 .DS_Store
+
+# Credentials. These belong in the environment, never in the repo.
+.env
+.env.*
+!.env.example
+
+# Temporary local-state override while the GCS bucket is blocked on
+# billing. Never commit a backend override or a local state file.
+*_override.tf

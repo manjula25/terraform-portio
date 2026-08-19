@@ -1,7 +1,7 @@
 variable "port_base_url" {
   description = "Port API base URL. Must match the organization stack. See organization/variables.tf."
   type        = string
-  default     = "https://api.us.port.io"
+  default     = "https://api.port.io"
 }
 
 ####################################################################

@@ -69,10 +69,15 @@ the ingestion job, never touched by Terraform.
 | EU | `app.port.io` | `https://api.port.io` |
 | US | `app.us.port.io` | `https://api.us.port.io` |
 
-Defaulted to US here, because the plan assumes a US instance — but
-"Confirm US Port instance" is still an **open Phase 0 item**, and it also
-decides the data-residency story. Confirm it before the first apply, not
-after. (The legacy `*.getport.io` hostnames still resolve; the
+**Confirmed EU, 2026-08-18 (G-3).** The credentials in use return `200`
+from `https://api.port.io` and `401` from `https://api.us.port.io`, so
+the default here is EU. This was measured, not assumed — the plan
+documents had it down as US, which is exactly why G-3 is a gate.
+
+Re-check it if the credentials ever change: the tenant and the
+credentials move together, in the same pull request, or Terraform points
+at one tenant with another's keys. This also decides the data-residency
+story. (The legacy `*.getport.io` hostnames still resolve; the
 `*.port.io` form is the documented one.)
 
 ### 3. State bucket
@@ -150,11 +155,27 @@ entry for `modules/` and `organization/` is how that gets enforced —
 Stubs that apply cleanly read as "done", so these are absent rather than
 empty:
 
-- `service.kind` and its kind-specific fields (**O-5**) — required
-  before the pilot registers services
-- a team blueprint related to `ai_usage` (**O-1**) — the highest-priority
-  model gap; until it lands, per-team AI spend is not answerable
-- relations to Jira project and Confluence space on `service`
 - scorecards, self-service actions, permissions, the AI-usage ingestion
   pipeline
 - `CODEOWNERS`
+- entities of any kind in the `skill` and `mcp_server` registries.
+  Phase 1 declares their schema and nothing else (**DM-16**); the
+  permission model lands in Phase 2 (**P-9**), once teams are synced
+  and there are real entities to scope against
+- relations to Jira project and Confluence space on `service`. They sit
+  on `project` instead (**DM-6**), because `service` is written by the
+  git integration and a second writer risks blanking ingested fields
+
+## Model gaps that are now closed
+
+Both blocked the pilot and both are applied:
+
+- **O-5** → `service.kind`, required, five values (`web`, `mobile`,
+  `api`, `worker`, `job`) with kind-specific field groups (**DM-4**).
+  Three kinds could not describe an estate with a worker, two jobs, and
+  a proxy in it.
+- **O-1** → `ai_usage` relates to the native `_team` blueprint
+  (**DM-8**). This is what moves "spend by team" from Blocked to Safe —
+  *provided* Entra groups turn out to match the real delivery squads
+  (**PQ-10**). If they mirror the org chart instead, the rollups
+  describe reporting lines rather than teams.

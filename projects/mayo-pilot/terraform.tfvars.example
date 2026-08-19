@@ -3,7 +3,7 @@
 # hold credentials. PORT_CLIENT_ID / PORT_CLIENT_SECRET come from the
 # environment, always.
 
-port_base_url = "https://api.us.port.io" # Phase 0: confirm US vs EU tenant
+port_base_url = "https://api.port.io" # G-3 confirmed 2026-08-18: EU tenant
 
 # Phase 0 blocker: the pilot has to be named by Mayo engineering
 # leadership before any of this can be filled in.

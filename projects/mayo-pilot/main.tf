@@ -54,9 +54,13 @@ locals {
       stage  = "dev"
       region = "us-central1"
     }
-    production = {
-      title  = "Pilot — Production"
-      stage  = "production"
+    # DM-2/IR-4: the enum is dev | test | stage | prod. Four values,
+    # and Mayo's word is "prod", not "production" — its estate codes
+    # the four GCP projects d/t/s/p. Using the plan's old "production"
+    # here would fail the apply against the required enum.
+    prod = {
+      title  = "Pilot — Prod"
+      stage  = "prod"
       region = "us-central1"
     }
   }
@@ -103,7 +107,10 @@ resource "port_entity" "environment" {
 #   properties = {
 #     string_props = {
 #       "language"        = "typescript"
-#       "lifecycle"       = "production"
+#       "kind"            = "api"           # required (DM-4)
+#       "lifecycle"       = "experimental"  # P-7: promotion is deliberate
+#       "api_spec_url"    = "https://github.com/<org>/pilot-api/blob/main/openapi.yaml"
+#       "api_gateway"     = "apigee"
 #       "repo_url"        = "https://github.com/<org>/pilot-api"
 #       "readme_url"      = "https://github.com/<org>/pilot-api#readme"
 #       "on_call_channel" = "https://teams.microsoft.com/l/channel/..."
