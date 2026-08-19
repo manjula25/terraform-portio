@@ -102,17 +102,23 @@ part of this range.)
 
 ## Requested external actions
 
-None requested yet. Awaiting explicit instruction on push / pull request / merge.
+User explicitly requested: push the branch and open a pull request against `main`.
 
 ## Executed external actions and observed results
 
-None. No push, pull request, merge, tracker transition, deployment, or publication has been
-performed for this work item.
+- `origin/main` did not exist — the remote `bitcot/port-io` was completely empty
+  (`git ls-remote origin` returned nothing). Confirmed with the user before acting, since this
+  is a bigger action than pushing a feature branch: it establishes the repository's entire
+  history on the remote for the first time. User confirmed.
+- Pushed local `main` (through `1d1b57c`) to `origin/main` — observed: `* [new branch] main -> main`.
+- Pushed `feat/PHASE2-pilot-project-and-environments` to `origin` — observed:
+  `* [new branch] feat/PHASE2-pilot-project-and-environments -> feat/PHASE2-pilot-project-and-environments`.
+- Opened a pull request against `main` via `gh pr create`, body drawn from this delivery
+  summary — observed result: **https://github.com/bitcot/port-io/pull/1**.
 
 ## Pending actions
 
-- Push `feat/PHASE2-pilot-project-and-environments` to the remote (not yet requested).
-- Open a pull request against `main` (not yet requested).
 - **Rotate the exposed Port credential** — outside this branch's scope but blocking in
-  practice; recommended before any further work in this Port organization, regardless of what
-  happens to this branch.
+  practice; recommended before any further work in this Port organization, regardless of this
+  PR's fate.
+- PR review and merge — not requested; awaiting the user's own review on GitHub.
