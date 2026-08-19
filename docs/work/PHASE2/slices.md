@@ -9,8 +9,14 @@ four conflicts found while writing this.
 
 Approved means: the slice boundaries, the dependency order, and the blocker list are agreed and
 downstream work may build on them. It does **not** mean the two decisions inside the graph are
-made. `S5` still has no acceptance criteria and the track decision still cuts across `S3`, `S6`,
-`S7` and `S10`. Approving the shape of the work is not the same as answering what the work is.
+made. Approving the shape of the work is not the same as answering what the work is.
+
+**Update, 19 Aug 2026: the track decision (`G-12`) is closed — Track A (GitHub).** This unblocks
+`S3` and `S6`/`S7` to plan against a real mechanism, and closes `S10` as **not applicable**
+(it was Track-B-only). It is not yet independently verified against the named pilot team's
+actual estate (`PQ-6` — Mayo's own IRIS findings, `IR-2`, found repositories on Azure DevOps
+elsewhere in the org). `S5` still has no acceptance criteria and remains open, owned by the
+sponsor.
 
 Every slice below is blocked on an input nobody has supplied yet. That is the honest state of
 Phase 2, and it is why the graph is worth agreeing now: the blockers are the deliverable of
@@ -262,7 +268,12 @@ is the finding in S5.
 - **Dependencies:** S2.
 - **Blockers:** Google Cloud read access (`PQ-17`).
 
-### Slice 10: Merge-freeze state is visible — Track B only
+### Slice 10: Merge-freeze state is visible — Track B only — **CLOSED, NOT APPLICABLE**
+
+**Update, 19 Aug 2026:** the track decision (`G-12`) closed as Track A (GitHub). This slice was
+Track-B-only by its own design (Azure DevOps's `MERGE_FREEZE` variable group, `IR-6`), so it now
+formally does not apply. This satisfies `FR-014`'s own boundary note ("On Track A this
+requirement does not exist") rather than leaving it open.
 
 - **Observable outcome:** Developers see a production freeze before a PR is blocked by it.
 - **Acceptance criteria:** freeze state visible on the project page, **or** the requirement
@@ -276,7 +287,7 @@ is the finding in S5.
 - **Risk exposure:** None if deferred honestly. This slice does not exist at all on Track A.
 - **Evidence needed:** the state visible, or a written deferral.
 - **Dependencies:** none.
-- **Blockers:** track decision.
+- **Blockers:** ~~track decision~~ **resolved: not applicable on Track A.**
 
 ---
 
@@ -303,6 +314,9 @@ live entities against a schema that no longer matches.
 
 Approved by **manjula, 19 Aug 2026**, as the decomposition of PRD Phase 2.
 
-Carried forward, unapproved and unanswered: the `S5` decision (a PRD amendment owned by the
-sponsor) and the track decision (`G-12`). Both are recorded as clarifications in
-`specification.md` and neither is closed by this approval.
+Carried forward, unapproved and unanswered at approval time: the `S5` decision (a PRD amendment
+owned by the sponsor) and the track decision (`G-12`). Neither was closed by this approval.
+
+**Update, 19 Aug 2026 (same day):** the track decision (`G-12`) is now closed — Track A
+(GitHub) — recorded in `specification.md`'s Clarifications and Approval sections. `S5` remains
+open; it is a sponsor decision, not a track decision, and is unaffected by this closure.

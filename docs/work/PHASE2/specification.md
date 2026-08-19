@@ -16,9 +16,13 @@ content rather than wording:
 
 - **Clarification 1 (`FR-015`, the `S5` exit test)** — `FR-015` still has no success criteria.
   It cannot be planned, and a plan that includes it is inventing acceptance.
-- **Clarification 2 (the track, `G-12`)** — decides the mechanism in `FR-004`, `FR-010` and
-  `FR-011`, and whether `FR-014` exists. Six of fifteen requirements change content with the
-  answer, so a plan written before it lands is rewritten after.
+- **Clarification 2 (the track, `G-12`) — CLOSED, 19 Aug 2026, manjula: Track A (GitHub).**
+  `PQ-6` frames this as "which git provider does the pilot *actually* use" — a fact to verify
+  against the real Mayo pilot's estate, not a preference to pick. `IR-2` found nine CDH Content
+  Automation repositories running on Azure DevOps with no `.github/` workflows at all, so this
+  decision **should still be confirmed against the named pilot team's actual usage** before it
+  is treated as final for the real engagement — it is not re-opened by that caution, but it is
+  not yet independently verified against Mayo's estate either. See the effect table below.
 
 Approving a specification that names its own open questions is the correct move; treating those
 questions as answered because the document is approved is not.
@@ -433,9 +437,13 @@ satisfied by this approval:
 | Gate | State | Effect on `writing-plans` |
 |---|---|---|
 | Clarification 1 — the `S5` / `FR-015` exit-test decision | **Open.** Owned by the sponsor; it is a PRD amendment. | `FR-015` is out of plan scope. Nothing in a plan may claim to satisfy the Phase 2 exit test until it closes. |
-| Clarification 2 — track (`G-12`) | **Open.** Mayo engineering. | `FR-004`, `FR-005`, `FR-006`, `FR-010`, `FR-011`, `FR-014` cannot be planned to a mechanism. Plan them to the outcome or leave them for a second pass. |
+| Clarification 2 — track (`G-12`) | **Closed 19 Aug 2026, manjula: Track A (GitHub).** Not yet independently verified against the named pilot team's actual estate (`PQ-6`). | `FR-004`, `FR-005`, `FR-006` can now be planned to the GitHub (Ocean) mechanism. `FR-010`/`FR-011` plan to a GitHub Actions dispatch/callback. `FR-014` (merge-freeze surfaced) **does not exist on Track A** — it was Track-B-only by its own boundary note, so this closes it as "not applicable" rather than leaving it open. |
 | Clarification 3 — `PQ-8`, registry permission meaning | **Open.** | `FR-012` plannable only as far as "the grant is recorded and the disclaimer is visible". |
 
-So the plannable set today is `FR-001`, `FR-002`, `FR-003`, and `FR-013` when GCP access lands —
-each still gated on a Mayo input listed under Non-functional constraints. That is what a first
-plan should cover, and it should say plainly what it leaves out.
+With `G-12` closed, the plannable set expands to `FR-004`, `FR-005`, `FR-006` (the git
+integration mechanism and its two decisive settings), `FR-013` when GCP access lands (`PQ-17`),
+and — once the sponsor decides `S5` (`FR-015`, currently the other open clarification) — either
+that requirement or its formal amendment. `FR-007`–`FR-009` remain additionally blocked on the
+pilot's actual repository list; `FR-010`/`FR-011` remain blocked on the task choice and a CI
+dispatch/callback credential. `FR-012` remains blocked on `PQ-8`. `FR-001`, `FR-002`, `FR-003`
+are already delivered — see `docs/work/PHASE2/delivery.md`.
