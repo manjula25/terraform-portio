@@ -132,25 +132,30 @@ variable "github_repo_search" {
 #
 # Blocked on PQ-1 (how data leaves Mayo's network) and PQ-17 (VPC
 # Service Controls reachability). Do not set these variables until
-# both questions are closed and the GCP integration is installed in
-# the Port UI. See integration-gcp.tf header for the full gate list.
+# both questions are closed and the GCP integration is deployed.
+# See integration-gcp.tf header for the full gate list.
+#
+# NOTE (VB-1e): The GCP integration is self-hosted, not "hosted by
+# Port." There is no UI install. Whether port_integration applies
+# to self-hosted integrations is unverified — the gcp_installation_id
+# variable may not be the right shape. See VB-1e in the build spec.
 ####################################################################
 
 variable "gcp_installation_id" {
   description = <<-EOT
-    The installation ID of the Google Cloud (Ocean) data source, taken
-    from the Port UI after the integration is installed. Lowercase
-    letters, numbers and dashes only.
+    The installation ID of the Google Cloud (Ocean) integration.
 
-    Terraform does not install the integration. It adopts the mapping
-    of an integration that already exists, via `terraform import`:
+    UNVERIFIED (VB-1e): The GCP integration is self-hosted, not
+    installed via the Port UI like GitHub. Whether port_integration
+    applies to self-hosted integrations, and what the installation_id
+    maps to in that context, must be confirmed during deployment
+    method research.
 
-      terraform import port_integration.gcp <installation-id>
-
-    The service account key is set at install time in the Port UI,
-    not in Terraform — same pattern as GitHub. See BS-14 for the
-    access scope: viewer-level read per GCP project, never at folder
-    or organisation level.
+    The service account key is set in the self-hosted integration's
+    deployment config (Helm values, Docker env, or Terraform
+    variables), never in this file or Port Terraform state. See BS-14
+    for the access scope: viewer-level read per GCP project, never at
+    folder or organisation level.
   EOT
   type        = string
 
