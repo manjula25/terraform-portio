@@ -103,15 +103,79 @@ resource "port_integration" "github" {
           }
         }
       },
+      {
+        # Pull requests -> our own `pull_request` blueprint. Ocean's
+        # default `githubPullRequest` stays OFF. FR-005 forbids an
+        # integration-CREATED blueprint; a custom one we point the
+        # mapping at does not violate that rule, which is the whole
+        # basis of the FR-015 decision.
+        #
+        # states: ["open"] deliberately, and it is Ocean's own default.
+        # Open pull requests are a bounded working set. Merged history
+        # is the unbounded one, and it is what makes G-9 (Port's
+        # per-blueprint entity limit) a live question rather than a
+        # theoretical one. Merged history is also a Phase 4 DORA input,
+        # not a Phase 2 one — see the note at the end of this array.
+        #
+        # DO NOT widen this to ["open","closed"] until G-9 has a
+        # written answer from Port support. It is a one-line change and
+        # that is exactly why it needs the gate stated here.
+        kind = "pull-request"
+        selector = {
+          query  = "true"
+          states = ["open"]
+        }
+        port = {
+          entity = {
+            mappings = [{
+              # .__repository is injected by Ocean and resolves to the
+              # repository NAME as a string — the same value the
+              # `repository` kind above uses as its service identifier
+              # (".name"). That is what makes the relation below line
+              # up without a lookup.
+              identifier = ".__repository + \"-\" + (.number|tostring)"
+              title      = ".title"
+              blueprint  = "\"pull_request\""
+              properties = {
+                # The provider's .state is open|closed only. "merged"
+                # is .merged_at being non-null. Mapping .state straight
+                # through would render every merged pull request as
+                # "closed", which is wrong on the one transition the
+                # exit test is about.
+                status = "if .merged_at then \"merged\" elif .state == \"open\" then \"open\" else \"closed\" end"
+
+                # .html_url is the browser link. Ocean's default sample
+                # uses .url, which is the API URL — not clickable for a
+                # human, and this blueprint exists to be looked at.
+                url        = ".html_url"
+                author     = ".user.login"
+                created_at = ".created_at"
+                updated_at = ".updated_at"
+                merged_at  = ".merged_at"
+                closed_at  = ".closed_at"
+                pr_number  = ".number"
+              }
+              relations = {
+                # ADR-002: service, not repository. Nothing creates
+                # repository entities.
+                service = ".__repository"
+              }
+            }]
+          }
+        }
+      },
     ]
 
-    # Additional kinds — pull-request, workflow, workflow-run,
-    # dependabot-alert, code-scanning-alert — are added once the
-    # blueprints they map onto are decided. They are the input to the
-    # DORA-style delivery metrics and to the security dimension of the
-    # scorecard, so they arrive in Phase 4, not now. Adding a kind
-    # before its blueprint exists produces failed-transform counters,
-    # not data.
+    # Additional kinds — workflow, workflow-run, dependabot-alert,
+    # code-scanning-alert — are added once the blueprints they map onto
+    # are decided. They are the input to the DORA-style delivery metrics
+    # and to the security dimension of the scorecard, so they arrive in
+    # Phase 4, not now. Adding a kind before its blueprint exists
+    # produces failed-transform counters, not data.
+    #
+    # `pull-request` landed in Phase 2 (FR-015) because the phase exit
+    # test names it explicitly. Merged-PR history stays a Phase 4
+    # concern — see the states filter above.
   })
 }
 
