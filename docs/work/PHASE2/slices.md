@@ -15,8 +15,7 @@ made. Approving the shape of the work is not the same as answering what the work
 `S3` and `S6`/`S7` to plan against a real mechanism, and closes `S10` as **not applicable**
 (it was Track-B-only). It is not yet independently verified against the named pilot team's
 actual estate (`PQ-6` — Mayo's own IRIS findings, `IR-2`, found repositories on Azure DevOps
-elsewhere in the org). `S5` still has no acceptance criteria and remains open, owned by the
-sponsor.
+elsewhere in the org). `S5`'s decision is also now closed — see below.
 
 Every slice below is blocked on an input nobody has supplied yet. That is the honest state of
 Phase 2, and it is why the graph is worth agreeing now: the blockers are the deliverable of
@@ -47,7 +46,7 @@ mechanism inside `S3`, `S6`, `S7` and decides whether `S10` exists at all.
 |---|---|---|
 | `P-1` pilot project and team | S1 | Pilot named (`G-11`); SSO so `_team` exists |
 | `P-2` environments per stage | S2 | Which stages actually run |
-| `P-3` integration installed and imported | S3 | Track (`G-12`); org name; a human UI handshake |
+| `P-3` integration installed and imported | S3 | org name; a human UI handshake (`G-12` closed: Track A) |
 | `P-4` the two settings that decide it | S3 | same as S3 |
 | `P-5` narrow scope first | S4 | Pilot's repository list |
 | `P-6` ingestion counters watched | S4 | S3 |
@@ -57,10 +56,10 @@ mechanism inside `S3`, `S6`, `S7` and decides whether `S10` exists at all.
 | `P-9` registry permission layer | S8 | S1; `PQ-8` |
 | `P-10` merge-freeze surfaced | S10 | Track B confirmed |
 | `P-11` environments from Google Cloud | S9 | GCP read access (`PQ-17`) |
-| **Exit test: pull requests visible** | **S5** | **No blueprint models a pull request — needs a decision** |
+| **Exit test: pull requests visible** | **S5** | **Decided 19 Aug 2026: add a `pull_request` blueprint — not yet implemented; `G-9` check needed first** |
 
-Every requirement is claimed. One exit condition is **not** covered by any requirement, which
-is the finding in S5.
+Every requirement is claimed. `FR-015`/`S5` was the one exit condition not covered by any
+`P-*` requirement; that gap is now closed by decision, though not yet by implementation.
 
 ---
 
@@ -135,8 +134,8 @@ is the finding in S5.
 - **Evidence needed:** clean plan post-import; blueprint list showing no Ocean-created types;
   a single integration.
 - **Dependencies:** none.
-- **Blockers:** track decision (`G-12`); GitHub org name; **a human must do the OAuth
-  handshake in the UI** — this is the one UI step `B-3` permits.
+- **Blockers:** ~~track decision~~ **resolved: Track A.** GitHub org name; **a human must do
+  the OAuth handshake in the UI** — this is the one UI step `B-3` permits.
 
 ### Slice 4: The pilot's repositories appear as services and repositories
 
@@ -162,29 +161,43 @@ is the finding in S5.
 - **Dependencies:** S3, S1.
 - **Blockers:** the pilot's repository list.
 
-### Slice 5: Pull requests are visible — **or the exit test is formally amended**
+### Slice 5: Pull requests are visible — **DECIDED, 19 Aug 2026, manjula: add a `pull_request` blueprint**
+
+**Update:** of the three options below, option 1 was chosen. This slice is now plannable, but
+not yet planned or implemented — see the two named consequences before scheduling it.
 
 - **Observable outcome:** The team can see their open pull requests from the portal.
-- **Acceptance criteria:** *undefined until a decision is made* — see below.
-- **Requirements covered:** none. **That is the finding.**
+- **Acceptance criteria:** a `pull_request` blueprint exists (title, state, URL, author,
+  timestamps, related to `repository`); the GitHub mapping's `pull-request` kind maps onto it;
+  a real pull request appears as an entity; `FR-005`'s "no Ocean-created blueprint" check still
+  passes (this is a *custom* blueprint the mapping points at, not Ocean's own default).
+- **Requirements covered:** `FR-015` (see `specification.md`).
 - **Assumption dependencies:** none — this slice exists because an assumption was found to be
   unsupported.
-- **Preferred seam:** undecided.
-- **Simplification notes:** Three options, none free:
-  1. **Add a `pull_request` blueprint.** Honest, and contradicts `D-1`, which defers
-     additional blueprints. It is also a high-churn entity type — `G-9` (Port entity limits)
-     becomes relevant immediately.
-  2. **Link out per repository.** Cheapest. The portal shows a link, not the PRs. Arguably
-     fails "see their pull requests" in spirit while passing it in letter.
-  3. **Drop it from the exit test.** Defensible if the pilot does not care, but it must be
-     said to the sponsor rather than quietly omitted.
-- **Risk exposure:** Phase 2's stated exit condition currently **cannot be met**. `DM-5` was
-  written to close this gap and only closed the repository half. Discovering this at the demo
-  is far worse than deciding it now.
-- **Evidence needed:** a recorded decision, then acceptance criteria derived from it.
-- **Dependencies:** S4.
-- **Blockers:** **a decision from the sponsor or the PRD's author.** This is a PRD amendment,
-  not a local choice.
+- **Preferred seam:** the `pull_request` entity list, and the mapping's own resync counters for
+  the `pull-request` kind (same pattern as `FR-008` checks `repository`).
+- **Simplification notes:** Three options were on the table, none free. Chosen: **Add a
+  `pull_request` blueprint** — honest, but two consequences follow rather than resolve by
+  choosing it:
+  1. **`D-1` needs amending.** It deferred *additional* blueprints generally; this creates one
+     deliberately. `D-1` should be updated to record the exception, not left reading as a
+     blanket rule this now contradicts silently.
+  2. **`G-9` (Port's entity-count limits) becomes live.** Pull requests are high-churn — far
+     more open/close events than services or repos. Check Port's plan/licence entity limits
+     against realistic PR volume for the pilot's actual repositories **before** implementing
+     this for real, not after.
+
+  Rejected: **Link out per repository** (cheapest, but shows a link rather than the PRs
+  themselves — passes the letter, not the spirit); **drop it from the exit test** (would have
+  needed saying to the sponsor explicitly, moot now that a decision was made instead).
+- **Risk exposure:** Implementing this touches `modules/core-blueprints/` — a shared-model
+  change, per `docs/agents/project-policy.md` §Risk area 6 ("a change to `modules/` changes
+  every project stack"). Requires the worktree policy in `docs/agents/workflow.md`, its own
+  `writing-plans`/`implement`/review pass, and the `G-9` check above done first.
+- **Evidence needed:** `E-PLAN` for the blueprint and mapping creation; `E-COUNTER` for a clean
+  first sync of the `pull-request` kind (analogous to `FR-008`).
+- **Dependencies:** S4 (repository ingestion must already work); the `G-9` entity-limit check.
+- **Blockers:** none for planning; the `G-9` check should happen before implementation.
 
 ### Slice 6: One action a developer uses without being asked
 
@@ -301,9 +314,10 @@ inputs are not.
 the org and repository list, and have someone install the integration in the UI. That opens
 S1, S3, S4 and the path to S6.
 
-**S5 is the one to settle before anything is demonstrated.** Phase 2's exit test promises
-pull requests and no blueprint models one. It is cheaper to amend the exit test now than to
-discover it in front of the sponsor.
+**S5 is decided, not yet built.** Phase 2's exit test promised pull requests and no blueprint
+modeled one; the decision (add a custom `pull_request` blueprint) is recorded, but
+implementing it is new shared-model work, and `G-9`'s entity-limit question should be checked
+before it's built for real.
 
 **The rehearsal organization stops being optional here.** It was deferred while the catalog
 held zero entities, which was correct. This is the phase that puts real entities in, and a
@@ -317,6 +331,7 @@ Approved by **manjula, 19 Aug 2026**, as the decomposition of PRD Phase 2.
 Carried forward, unapproved and unanswered at approval time: the `S5` decision (a PRD amendment
 owned by the sponsor) and the track decision (`G-12`). Neither was closed by this approval.
 
-**Update, 19 Aug 2026 (same day):** the track decision (`G-12`) is now closed — Track A
-(GitHub) — recorded in `specification.md`'s Clarifications and Approval sections. `S5` remains
-open; it is a sponsor decision, not a track decision, and is unaffected by this closure.
+**Update, 19 Aug 2026 (same day):** both are now closed — the track decision (`G-12`, Track A /
+GitHub) and the `S5` decision (add a custom `pull_request` blueprint) — recorded in
+`specification.md`'s Clarifications and Approval sections. Neither decision's implementation
+work has started; `S5`'s carries a `G-9` entity-limit check as a precondition to building it.
