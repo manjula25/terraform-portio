@@ -324,9 +324,11 @@ the one claimed must also pass.
   `githubPullRequest` blueprint stays off; `FR-005`'s "no integration-created blueprint" rule is
   not violated by a *custom* one we point the mapping at).
 - **Success criteria (now statable):** a `pull_request` blueprint exists with, at minimum, a
-  title, state (open/merged/closed), URL, author, and timestamps, related to `repository`; the
-  GitHub mapping's `pull-request` kind resource maps onto it; a real pull request from the
-  pilot's (or sandbox's) repository appears as an entity; `FR-005`'s check (no Ocean-created
+  title, state (open/merged/closed), URL, author, and timestamps, related to `service`, not
+  `repository` — see `ADR-002` for why: nothing in this repo creates `repository` entities,
+  bounded to `states: ["open"]` (merged/closed history is out of scope here, see `implementation-plan-fr-015.md`);
+  the GitHub mapping's `pull-request` kind resource maps onto it; a real, open pull request from
+  the pilot's (or sandbox's) repository appears as an entity; `FR-005`'s check (no Ocean-created
   blueprint) still passes.
 - **Named consequences of this decision, not resolved by making it:**
   - **`D-1` amended, 19 Aug 2026** (`../../../../mayo-port-prd.md` §20, next to `D-1` and `G-9`).
@@ -433,7 +435,7 @@ and each is recorded on the requirement it affects.
 | FR-012 | `P-9`, `DM-16` | `S8` | `E-READ` + `E-HUMAN` | `PQ-8` |
 | FR-013 | `P-11`, `BD-2` | `S9` | `E-READ` | `PQ-17` |
 | FR-014 | `P-10`, `IR-6` | `S10` | — | **not applicable — Track A** |
-| FR-015 | Phase 2 exit line — **no `P-*`** | `S5` | `E-HUMAN` for the decision, `E-PLAN`/`E-COUNTER` once planned | **decided**; `D-1` amended 19 Aug 2026 (`../../../../mayo-port-prd.md` §20); `G-9` check still needed |
+| FR-015 | Phase 2 exit line — **no `P-*`** | `S5` | `E-HUMAN` for the decision, `E-PLAN`/`E-COUNTER` once planned | **decided**; `D-1` amended 19 Aug 2026 (`../../../../mayo-port-prd.md` §20); `G-9` check still needed; plan exists (`implementation-plan-fr-015.md`), `ADR-002` recorded |
 
 Every `P-*` requirement in PRD §8 is covered exactly once. Every slice `S1`…`S10` is claimed by
 at least one `FR`. `FR-015` is the only requirement with no `P-*` source, and that asymmetry is
