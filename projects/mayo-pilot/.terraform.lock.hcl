@@ -5,6 +5,8 @@ provider "registry.terraform.io/port-labs/port-labs" {
   version     = "2.23.1"
   constraints = "~> 2.23"
   hashes = [
+    "h1:i0suYyLb8ePamGgt3R1mJyQ4OTpC16IzI+Vszr144k4=",
+    "h1:mMxkCfHYsT0Dhoa3E53ccsVXH8kiTSJRh/aibNCJLq0=",
     "h1:woPmc0LIobA4OEFGgKk0RQ4ZF8YgA6B0O/prdfeubCE=",
     "zh:1c3e89cf19118fc07d7b04257251fc9897e722c16e0a0df7b07fcd261f8c12e7",
     "zh:2cfc686e2871fc4bf18eff4c38c56e875b434fdd8de063a7bbb48e4e4720c1db",
