@@ -157,6 +157,39 @@ if [ -f "$GH_TF" ]; then
     failed=$((failed + 1))
   fi
   echo
+
+  ####################################################################
+  # pull_request.merged_at / closed_at (FR-015)
+  #
+  # Both carry format "date-time" on the blueprint, and an OPEN pull
+  # request has neither. Mapping them straight through sent null and the
+  # first successful sync rejected it:
+  #
+  #   Mapping error for kind pull-request: closed_at, merged_at:
+  #   jq misconfiguration detected for blueprint "pull_request"
+  #
+  # The expression must yield NOTHING for null — an absent optional
+  # property is valid, a null in a date-time field is not. `// empty`
+  # does not work: null is a legitimate value to jq's alternative
+  # operator, so it passes null through. Hence the explicit `if`.
+  #
+  # A passing case here emits no output at all, so these two use a
+  # dedicated assertion rather than the string-compare one.
+  ####################################################################
+  echo "pull_request.merged_at / closed_at — $GH_TF"
+  for f in merged_at closed_at; do
+    if EXPR="$(extract "$GH_TF" "$f")"; then
+      # null must yield NOTHING — assert compares against the empty
+      # string, which is exactly what `empty` produces.
+      assert "$f" "$EXPR" "{\"$f\":null}" ""
+      assert "$f" "$EXPR" "{}" ""
+      # a real timestamp must pass through unchanged
+      assert "$f" "$EXPR" "{\"$f\":\"2026-08-19T00:00:00Z\"}" "2026-08-19T00:00:00Z"
+    else
+      failed=$((failed + 1))
+    fi
+  done
+  echo
 fi
 
 echo "Result"

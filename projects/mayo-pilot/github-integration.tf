@@ -309,9 +309,26 @@ resource "port_integration" "github" {
                 author     = ".user.login"
                 created_at = ".created_at"
                 updated_at = ".updated_at"
-                merged_at  = ".merged_at"
-                closed_at  = ".closed_at"
-                pr_number  = ".number"
+                # `if . then . else empty end` OMITS the property when
+                # GitHub reports null, rather than sending null. Both
+                # fields carry format "date-time", and an open pull
+                # request has neither, so mapping them straight through
+                # produced, on the first successful sync (20 Aug 2026):
+                #
+                #   Mapping error for kind pull-request: closed_at,
+                #   merged_at: jq misconfiguration detected for
+                #   blueprint "pull_request" in fields:
+                #   properties.closed_at (.closed_at),
+                #   properties.merged_at (.merged_at)
+                #
+                # `// empty` would not do it: null is a legitimate value
+                # to jq's alternative operator, so it passes null through
+                # rather than falling back. The explicit `if` is what
+                # yields nothing at all. An absent optional property is
+                # valid; a null in a date-time field is not.
+                merged_at = "if .merged_at then .merged_at else empty end"
+                closed_at = "if .closed_at then .closed_at else empty end"
+                pr_number = ".number"
               }
               relations = {
                 # ADR-002: service, not repository. Nothing creates

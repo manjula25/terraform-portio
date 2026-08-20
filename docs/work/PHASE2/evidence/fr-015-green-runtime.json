@@ -1,0 +1,204 @@
+{
+  "captured": "2026-08-20 session 3 — FR-015 GREEN, runtime read-back",
+  "requirement": "FR-015",
+  "evidence_label": "E-READ",
+  "claim": "The GitHub integration ingests repositories as service entities and pull requests as pull_request entities, related to the pilot project and to their service. Sync completes with no errors.",
+  "root_cause_fixed": "spec.appSpec.incrementalSyncEnabled was true, which routed Ocean to GET /search/repositories (a changed-repo query returning nothing) instead of enumerating GET /repos/<owner>/<repo>/pulls per installed repository.",
+  "service_count": 25,
+  "pull_request_count": 2,
+  "services": [
+    {
+      "identifier": "proj_stage_mqpejs8z",
+      "kind": "api",
+      "language": "other",
+      "lifecycle": "experimental",
+      "project": "mayo-pilot"
+    },
+    {
+      "identifier": "auth",
+      "kind": "api",
+      "language": "typescript",
+      "lifecycle": "experimental",
+      "project": "mayo-pilot"
+    },
+    {
+      "identifier": "Runaway",
+      "kind": "api",
+      "language": "other",
+      "lifecycle": "experimental",
+      "project": "mayo-pilot"
+    },
+    {
+      "identifier": "proj_stage_mqpdolpz",
+      "kind": "api",
+      "language": "other",
+      "lifecycle": "experimental",
+      "project": "mayo-pilot"
+    },
+    {
+      "identifier": "port-io",
+      "kind": "api",
+      "language": "other",
+      "lifecycle": "experimental",
+      "project": "mayo-pilot"
+    },
+    {
+      "identifier": "adlc",
+      "kind": "api",
+      "language": "other",
+      "lifecycle": "experimental",
+      "project": "mayo-pilot"
+    },
+    {
+      "identifier": "proj_stage_mqpeciuz",
+      "kind": "api",
+      "language": "other",
+      "lifecycle": "experimental",
+      "project": "mayo-pilot"
+    },
+    {
+      "identifier": "proj_stage_mqqvi852",
+      "kind": "api",
+      "language": "other",
+      "lifecycle": "experimental",
+      "project": "mayo-pilot"
+    },
+    {
+      "identifier": "terraform-port",
+      "kind": "api",
+      "language": "other",
+      "lifecycle": "experimental",
+      "project": "mayo-pilot"
+    },
+    {
+      "identifier": "proj_stage_mqqvatjp",
+      "kind": "api",
+      "language": "other",
+      "lifecycle": "experimental",
+      "project": "mayo-pilot"
+    },
+    {
+      "identifier": "proj_stage_mqpdeaw2",
+      "kind": "api",
+      "language": "other",
+      "lifecycle": "experimental",
+      "project": "mayo-pilot"
+    },
+    {
+      "identifier": "sand",
+      "kind": "api",
+      "language": "typescript",
+      "lifecycle": "experimental",
+      "project": "mayo-pilot"
+    },
+    {
+      "identifier": "proj_stage_mqrlsw4t",
+      "kind": "api",
+      "language": "other",
+      "lifecycle": "experimental",
+      "project": "mayo-pilot"
+    },
+    {
+      "identifier": "caregiver",
+      "kind": "api",
+      "language": "other",
+      "lifecycle": "experimental",
+      "project": "mayo-pilot"
+    },
+    {
+      "identifier": "aws-sdk-ruby",
+      "kind": "api",
+      "language": "other",
+      "lifecycle": "experimental",
+      "project": "mayo-pilot"
+    },
+    {
+      "identifier": "proj_stage_mqrmee18",
+      "kind": "api",
+      "language": "other",
+      "lifecycle": "experimental",
+      "project": "mayo-pilot"
+    },
+    {
+      "identifier": "adlc-app-1",
+      "kind": "api",
+      "language": "typescript",
+      "lifecycle": "experimental",
+      "project": "mayo-pilot"
+    },
+    {
+      "identifier": "proj_stage_mqpdqwqu",
+      "kind": "api",
+      "language": "other",
+      "lifecycle": "experimental",
+      "project": "mayo-pilot"
+    },
+    {
+      "identifier": "proj_stage_mqpeeecp",
+      "kind": "api",
+      "language": "other",
+      "lifecycle": "experimental",
+      "project": "mayo-pilot"
+    },
+    {
+      "identifier": "hellosign-embedded",
+      "kind": "api",
+      "language": "javascript",
+      "lifecycle": "experimental",
+      "project": "mayo-pilot"
+    },
+    {
+      "identifier": "pdfjs_viewer-rails",
+      "kind": "api",
+      "language": "other",
+      "lifecycle": "experimental",
+      "project": "mayo-pilot"
+    },
+    {
+      "identifier": "terraform-portio",
+      "kind": "api",
+      "language": "other",
+      "lifecycle": "experimental",
+      "project": "mayo-pilot"
+    },
+    {
+      "identifier": "SAMPLE_ADLC",
+      "kind": "api",
+      "language": "other",
+      "lifecycle": "experimental",
+      "project": "mayo-pilot"
+    },
+    {
+      "identifier": "claude-workflow",
+      "kind": "api",
+      "language": "other",
+      "lifecycle": "experimental",
+      "project": "mayo-pilot"
+    },
+    {
+      "identifier": "Warm-Handoff",
+      "kind": "api",
+      "language": "other",
+      "lifecycle": "experimental",
+      "project": "mayo-pilot"
+    }
+  ],
+  "pull_requests": [
+    {
+      "identifier": "terraform-portio-1",
+      "status": "merged",
+      "author": "manjula25",
+      "merged_at": "2026-08-19T18:11:35Z",
+      "closed_at": "2026-08-19T18:11:35Z",
+      "service": "terraform-portio"
+    },
+    {
+      "identifier": "SAMPLE_ADLC-1",
+      "status": "open",
+      "author": "manjula25",
+      "merged_at": null,
+      "closed_at": null,
+      "service": "SAMPLE_ADLC"
+    }
+  ]
+}
