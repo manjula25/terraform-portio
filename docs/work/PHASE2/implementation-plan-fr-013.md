@@ -27,8 +27,28 @@ all. If it did not, `integration-gcp.tf` was not adjustable — it was throwaway
    parameter (Port's Helm instructions use `integration.identifier="ocean-custom"`).
 
 So `installation_id` is **an identifier we choose and hand to the deployment**, not one Port
-issues back to us. That is the single substantive difference from GitHub, whose
-`installation_id` (`154905752`) *was* Port-generated because that integration is hosted by Port.
+issues back to us.
+
+**Correction, 20 Aug 2026.** This section originally added that GitHub was "the single
+substantive difference", its `installation_id` (`154905752`) being Port-generated. **That was
+wrong**, and reading the live tenant disproved it:
+
+```
+GET /v1/integration               -> installationId "github-ocean", appType "github-ocean"
+GET /v1/integration/github-ocean  -> 200
+GET /v1/integration/154905752     -> 404
+```
+
+`154905752` is the GitHub **App** installation ID — a GitHub-side number that is not a Port
+object at all. Port keys the integration on the slug `github-ocean`. So there is no difference
+between the two integrations on this point: **both** use a lowercase-dash identifier, and the
+rule generalizes rather than having a GitHub exception.
+
+This matters beyond tidiness. `terraform.tfvars` carrying `154905752` would not adopt the live
+integration — it would plan a **create**, which is the "second empty integration" failure this
+file warns about, and on apply the `"installationAppType" must be string` error that
+`implementation-plan-fr-015.md` §P-1 attributes to a missing import. The import was not missing;
+the identifier was wrong.
 
 **The consequence, and it is the sharpest edge in this requirement:**
 `var.gcp_installation_id` and the collector's `integration.identifier` must be the same string.
@@ -184,23 +204,81 @@ Terraform 1.15.8 was installed for this work, pinned deliberately to the version
 | Formatting | `terraform fmt -check -recursive .` | **PASS**, exit 0, repository-wide |
 | Validity | `terraform init -backend=false` + `terraform validate`, `organization` | **PASS** — "Success! The configuration is valid." |
 | Validity | same, `projects/mayo-pilot` | **PASS** — "Success! The configuration is valid." |
-| Plan-diff | `terraform plan` | **NOT REACHED** — fails on the credential, see below |
+| Plan-diff | `terraform plan`, `organization` | **RUN** — `0 to add, 1 to change, 0 to destroy` |
+| Plan-diff | `terraform plan`, `projects/mayo-pilot` | **RUN** — `4 to add, 1 to change, 0 to destroy` |
 
-`./scripts/verify.sh organization` now reports `fmt` **PASS**, `init` **PASS**, `validate`
-**PASS**, then stops at the plan rung with:
+The plan rung was reached on 20 Aug 2026 against the live sandbox tenant, credentials supplied
+by the user. **Reads and plans only. No `apply` was run.**
+
+State does not exist on this machine — the GCS bucket is still `REPLACE-ME-mayo-port-idp-tfstate`
+— so both stacks got a gitignored local `backend_override.tf` with state under `/tmp`, and the
+live objects were adopted with `terraform import`, which reads the remote object and writes only
+local state. Without that step the plan reports everything as a create and is worthless as a
+diff.
 
 ```
-Error: Unable to find client ID
-PORT_CLIENT_ID
+organization                            mayo-pilot
+  update module.core_blueprints           create port_entity.environment["dev"]
+         .port_blueprint.repository       create port_entity.environment["prod"]
+                                          create port_entity.project
+                                          create port_integration.gcp
+                                          update port_integration.github
 ```
 
-That is the only reason it stops. The configuration itself resolves — the failure is a missing
-credential, not a defect — but a rung that did not run is not a rung that passed, so `E-PLAN`
-remains unclaimed.
+**Zero deletes and zero replaces in both plans** — the `organization` destroy-guard passes.
 
-Both stacks needed a gitignored local `backend_override.tf` before `init` would succeed, because
-the GCS bucket named in `backend.tf` is still `REPLACE-ME-mayo-port-idp-tfstate`. Both were
-created during this session with state paths under `/tmp`.
+### What the live tenant actually contains
+
+| Question | Answer |
+|---|---|
+| Do the 10 shared blueprints exist? | **Yes, all 10** — including `pull_request` |
+| How many entities on them? | **Zero, on every one** |
+| Integrations installed | exactly one: `github-ocean`, Ocean v6.8.1 |
+| Teams | `default-team`, `default-group` — both with a **null identifier** |
+| Total blueprints in tenant | **62** |
+
+**`FR-005` is already failing, and by a wide margin.** Its criterion is that no
+integration-created blueprint exists in the catalog. **37 do** — `githubRepository`,
+`githubPullRequest`, `githubWorkflow`, plus whole families from Azure DevOps, Datadog, New Relic,
+Jira and AWS. The GCP mapping's `createPortResourcesOrigin=Empty` correction prevents this
+getting worse; it does nothing about the 37 already there. Cleaning them up is its own work item
+and needs a decision, because some may now have entities.
+
+### The single most important finding: do not apply `mayo-pilot`
+
+The plan for `port_integration.github` is an **update that removes live configuration**:
+
+- `installation_app_type = "github-ocean" -> null`. The resource does not declare the field, and
+  this provider blanks what a resource does not declare. That is risk area 1 in
+  `project-policy.md`, reproduced here in an actual plan rather than in the abstract.
+- The live integration carries a **richer `pull-request` mapping than the committed code** —
+  `states = ["closed"]`, `since = 90`, `maxResults = 300`, a selector of
+  `.base.ref == "main" and .state == "closed" and .merged_at != null`, and a
+  `"Merge: " + .title` title. The committed mapping filters `states = ["open"]` and would
+  **delete all of that**.
+
+Someone configured merged-PR ingestion in the UI. `github-integration.tf` explicitly defers
+merged history to Phase 4 pending `G-9`, and its `repoManagedMapping = false` comment warns that
+two sources of mapping truth is the same failure mode as UI-plus-Terraform. **That failure has
+already happened in this tenant.** Which mapping is correct is a decision for whoever made the
+UI change, not something to resolve by applying.
+
+### The mapping expressions, verified at the plan rung
+
+Both corrected expressions were extracted from `terraform show -json tfplan` — the exact JSON
+Terraform will send to Port — and executed under `jq`:
+
+```
+language  (.language // "other" | ascii_downcase) as $l | {...}[$l] // "other"
+          C# -> csharp    C++ -> other    Go -> go    {} -> other
+
+stage     (.display_name // "" | ... | first) as $seg | {...}[$seg // ""] // "unknown"
+          iris-d-app -> dev    iris-prod -> unknown    {} -> unknown
+```
+
+That closes the chain end to end: source → HCL render → `jsonencode` → plan JSON → executed jq.
+It still is not proof that Ocean evaluates them identically at sync time, which remains
+unreachable until the collector runs.
 
 ### Transform-logic checks, below the ladder
 
