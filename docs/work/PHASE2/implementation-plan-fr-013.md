@@ -170,43 +170,81 @@ recording the deployment sequence. Done, in this branch.
 
 ## Evidence reached
 
-**Below the ladder's lowest rung, and less than the previous checkpoint reached. Say so in any
-completion claim.**
+**Formatting and validity rungs pass on both stacks. The plan rung was NOT run — no Port
+credential was available to this session. Say so in any completion claim; `E-PLAN` is not
+claimed here.**
 
-`terraform` is **not installed** on the machine this branch was prepared on
-(`terraform -version` → `command not found`), so `fmt`, `validate`, and `plan` were **not run**.
-`project-policy.md` §Evidence levels does not accept the source text as its own proof, so nothing
-below counts as `E-PLAN`.
+Terraform 1.15.8 was installed for this work, pinned deliberately to the version
+`plan.yml` and `apply.yml` both set, so these results correspond to what CI would produce.
 
-What *was* run:
+### Rungs run
 
-- `./scripts/verify-mappings.sh` — 25 mapping-expression checks pass. This is a pre-flight check
-  on transform logic, deliberately labelled in its own header as **not** seam evidence.
-- The harness was checked for vacuity by running the pre-fix expressions through it: 3 of the 9
+| Rung | Command | Result |
+|---|---|---|
+| Formatting | `terraform fmt -check -recursive .` | **PASS**, exit 0, repository-wide |
+| Validity | `terraform init -backend=false` + `terraform validate`, `organization` | **PASS** — "Success! The configuration is valid." |
+| Validity | same, `projects/mayo-pilot` | **PASS** — "Success! The configuration is valid." |
+| Plan-diff | `terraform plan` | **NOT RUN** — no credential |
+
+### Transform-logic checks, below the ladder
+
+- `./scripts/verify-mappings.sh` — 25 checks pass. Labelled in its own header as **not** seam
+  evidence, because `project-policy.md` §Evidence levels rules out source-text assertions.
+- **Vacuity check:** the pre-fix expressions were run through the same assertions. 3 of the 9
   stage cases fail, on two distinct jq errors. A check that cannot fail proves nothing.
-- The two fixed HCL string literals were extracted from the `.tf` files, unescaped, and confirmed
-  to decode to exactly the jq that was tested — escaping being the likeliest place for a typo
-  that `validate` would have caught and nothing here can.
+- **Round-trip through Terraform's own renderer.** `terraform console` was used to evaluate
+  `local.gcp_stage_jq` and the composed environment identifier, and the *rendered* strings — not
+  a hand-unescaped approximation of them — were executed under `jq`. Both behave as intended
+  across all nine inputs, and `$seg` survives HCL rendering without being mistaken for
+  interpolation. This is the closest reachable approximation of the real transform without a live
+  sync.
 
-**Before this branch is reviewed, someone with Terraform installed must run:**
+### The plan rung, and who can run it
+
+`terraform plan` needs `PORT_CLIENT_ID` / `PORT_CLIENT_SECRET`, which were unset in this session.
+Per the standing convention recorded in `handoff.md`, credentialed commands are run by the user
+rather than by an agent, so this is handed over rather than attempted:
 
 ```bash
+export PORT_CLIENT_ID=...
+export PORT_CLIENT_SECRET=...
 ./scripts/verify.sh projects/mayo-pilot
 ./scripts/verify.sh organization
 ```
 
-Expected: `fmt`, `init`, `validate`, `plan` pass for both, plus the no-destroy guard on
-`organization`. `init` on `projects/mayo-pilot` still needs the local backend override described
-in `implementation-plan.md` Task 3, because the GCS bucket remains blocked on billing.
+`projects/mayo-pilot` needs a gitignored `backend_override.tf` pointing at a local backend, per
+`implementation-plan.md` Task 3, because the GCS bucket is still blocked on billing. One was
+created during this session with its state path under `/tmp`, and is ignored by the
+`*_override.tf` rule.
 
-`E-READ` for `FR-013` — the `environment` list compared against the GCP project inventory —
-is not reachable until the collector runs.
+It also needs a `terraform.tfvars`. `var.environments`, `var.gcp_installation_id` and
+`var.gcp_project_filter` have no defaults by design, so the stack cannot plan until real values
+exist — which is `FR-003`'s guard working as intended, not an obstacle to remove.
+
+**What a plan can and cannot prove here.** It will confirm the mapping config Terraform intends
+to send, and that no destroy or replace is present. It will **not** evaluate the jq — the provider
+does not either. Only a live resync does, which is why the pre-flight harness exists.
+
+`E-READ` for `FR-013` — the `environment` list compared against the GCP project inventory — is
+not reachable until the collector runs.
+
+### Provider lock files completed
+
+`terraform init` on Linux revealed that both `.terraform.lock.hcl` files carried **only macOS
+hashes**, because Phase 1 was developed on a Mac. Terraform still verified successfully against
+the registry `zh:` hashes and then appended the missing `linux_amd64` `h1:` hash — so CI was not
+broken, but every run on a different platform from the last committer's produced a spurious lock
+diff, and a workflow that checks for a clean tree would trip on it.
+
+Completed with `terraform providers lock -platform=linux_amd64 -platform=darwin_amd64
+-platform=darwin_arm64`, covering CI plus both Mac architectures. Confirmed stable: a subsequent
+`init` on both stacks produces no further lock change.
 
 ## Remaining tasks, in dependency order
 
 | # | Task | Owner | Blocked on |
 |---|---|---|---|
-| 1 | Run the verification rungs above and record the output | whoever has Terraform | nothing |
+| 1 | Run the **plan** rung and record the output — `fmt` and `validate` are already done and recorded above | whoever holds the Port credential | a Port credential; a real `terraform.tfvars` |
 | 2 | Close `PQ-1` — decide whether the collector runs inside or outside the VPC-SC perimeter | Mayo cloud + platform | nothing but a decision |
 | 3 | Close `PQ-17` — confirm the collector can reach the Cloud Asset Inventory API | Mayo cloud | task 2 |
 | 4 | Obtain viewer-level read per pilot GCP project, never folder or org (`BS-14`) | Mayo cloud | task 3 |
