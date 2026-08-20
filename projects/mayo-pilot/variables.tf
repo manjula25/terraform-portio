@@ -213,10 +213,11 @@ variable "github_repository_type" {
     yields zero entities — a silent empty result, not an error.
   EOT
   type        = string
-  default     = "private"
+  default     = null
+  nullable    = true
 
   validation {
-    condition     = contains(["private", "public", "all"], var.github_repository_type)
+    condition     = var.github_repository_type == null || contains(["private", "public", "all"], var.github_repository_type)
     error_message = "github_repository_type must be one of: private, public, all."
   }
 }

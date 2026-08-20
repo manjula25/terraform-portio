@@ -51,19 +51,32 @@ resource "port_integration" "github" {
     # the catalog, so "private" is the value Mayo's real tenant must
     # run with, and it is the variable's default.
     #
-    # It is a VARIABLE rather than a literal because this sandbox has no
-    # private repository that GitHub's search API returns to the App.
-    # Measured 20 Aug 2026: with repositoryType="private" the resync
-    # completed cleanly and reported
-    #   Finished registering kind: repository-0, 0 entities out of 0 raw results
-    # while the 12:55 sync that DID produce data had no repositoryType
-    # set at all and fetched a mix of public and private repos
-    # (terraform-portio, hellosign-embedded, SAMPLE_ADLC, claude-workflow).
+    # It is a VARIABLE, and NULL is meaningful: setting repositoryType at
+    # all changes HOW Ocean finds repositories, not just which ones.
+    # Measured 20 Aug 2026 by diffing this integration against a working
+    # one installed on a different account:
     #
-    # So the filter is correct for production and empties the sandbox.
-    # Overriding it to "all" is a SANDBOX-ONLY setting and belongs in
-    # the gitignored terraform.tfvars, never in a committed default.
+    #   repositoryType set    -> "Starting pagination for GET
+    #                            /search/repositories", which returned
+    #                            "0 entities out of 0 raw results" on
+    #                            every run and every value of the filter
+    #   repositoryType absent -> Ocean enumerates the App installation's
+    #                            own repositories, e.g. "Starting
+    #                            pagination for GET
+    #                            /repos/<owner>/<repo>/pulls"
+    #
+    # The App-installation list is the reliable source: it is exactly the
+    # set someone granted Port access to. GitHub's search API is not —
+    # it needs correct qualifier syntax AND indexed, visible repos, and
+    # it fails silently by returning an empty page rather than an error.
+    #
+    # So null is the working default. For Mayo the guardrail is still
+    # required, and it belongs back here as "private" once the tenant has
+    # private repos the App can enumerate — with the sync verified after,
+    # not assumed.
+    }, var.github_repository_type == null ? {} : {
     repositoryType = var.github_repository_type
+    }, {
 
     # Start narrow. Widening is a one-line PR; unwinding a full-org
     # sync that created hundreds of unowned services is not.
@@ -239,8 +252,36 @@ resource "port_integration" "github" {
         # `deployment` blueprint is a decided part of the model.
         kind = "pull-request"
         selector = {
-          query  = "true"
-          states = ["open"]
+          query = "true"
+
+          # states DECIDES WHICH GITHUB API OCEAN USES, not just which
+          # pull requests come back. Measured 20 Aug 2026 against this
+          # tenant:
+          #
+          #   ["open"]          -> GET /search/repositories, which
+          #                        returned "0 entities out of 0 raw
+          #                        results" on every run
+          #   ["open","closed"] -> GET /repos/<owner>/<repo>/pulls, one
+          #                        call per repository the App is
+          #                        installed on. This is what the 12:55
+          #                        sync did when it worked:
+          #                        "[Rest] Fetched total of 1 closed pull
+          #                        requests from manjula25/terraform-portio"
+          #                        across seven repositories.
+          #
+          # So ["open"] alone is not a narrower version of the same
+          # query — it is a different code path, and on this tenant it
+          # is the one that finds nothing. The bounded-working-set
+          # argument for open-only was sound in principle and wrong in
+          # practice.
+          #
+          # G-9 (Port's per-blueprint entity limit) is still open, so
+          # `since` bounds the history rather than pulling everything:
+          # 90 days matches what the working integration used. Widening
+          # it needs G-9 answered first.
+          states     = ["open", "closed"]
+          since      = 90
+          maxResults = 300
         }
         port = {
           entity = {
