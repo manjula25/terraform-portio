@@ -43,9 +43,11 @@ github_installation_id = "REPLACE-ME"
 github_organizations   = ["REPLACE-ME-org"]
 github_repo_search     = "org:REPLACE-ME-org topic:port-pilot"
 
-# From the Port UI after installing the Google Cloud (Ocean) data source.
+# CHOSEN BY US, not read from the Port UI — the GCP integration is
+# self-hosted. This string must equal the `integration.identifier` the
+# collector is deployed with, or the import adopts nothing.
 # Blocked on PQ-1 and PQ-17 — do not set until both close and the GCP
-# integration is installed. See integration-gcp.tf header.
-gcp_installation_id = "REPLACE-ME"
+# integration is deployed. See integration-gcp.tf header.
+gcp_installation_id = "mayo-pilot-gcp"
 gcp_project_filter  = ".display_name | startswith(\"iris-\")"
 
