@@ -5,7 +5,13 @@ Work item: **PHASE2**. Derived from `specification.md` (approved 19 Aug 2026) an
 
 ## Status
 
-**Draft — awaiting approval.** No task below has been executed.
+**Executed and delivered — 19 Aug 2026.** All six tasks below have been run; see
+§Evidence reached at the end of this document for what each rung actually proved, and
+`delivery.md` for the review and merge record. Landed on `main` via pull request #1.
+
+(This line read "Draft — awaiting approval. No task below has been executed." until
+20 Aug 2026. It was never updated when the plan was executed, and contradicted both
+§Evidence reached below and `delivery.md`.)
 
 ## Scope, and what it deliberately leaves out
 
