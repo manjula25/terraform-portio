@@ -184,7 +184,23 @@ Terraform 1.15.8 was installed for this work, pinned deliberately to the version
 | Formatting | `terraform fmt -check -recursive .` | **PASS**, exit 0, repository-wide |
 | Validity | `terraform init -backend=false` + `terraform validate`, `organization` | **PASS** — "Success! The configuration is valid." |
 | Validity | same, `projects/mayo-pilot` | **PASS** — "Success! The configuration is valid." |
-| Plan-diff | `terraform plan` | **NOT RUN** — no credential |
+| Plan-diff | `terraform plan` | **NOT REACHED** — fails on the credential, see below |
+
+`./scripts/verify.sh organization` now reports `fmt` **PASS**, `init` **PASS**, `validate`
+**PASS**, then stops at the plan rung with:
+
+```
+Error: Unable to find client ID
+PORT_CLIENT_ID
+```
+
+That is the only reason it stops. The configuration itself resolves — the failure is a missing
+credential, not a defect — but a rung that did not run is not a rung that passed, so `E-PLAN`
+remains unclaimed.
+
+Both stacks needed a gitignored local `backend_override.tf` before `init` would succeed, because
+the GCS bucket named in `backend.tf` is still `REPLACE-ME-mayo-port-idp-tfstate`. Both were
+created during this session with state paths under `/tmp`.
 
 ### Transform-logic checks, below the ladder
 
