@@ -20,10 +20,16 @@
 #
 #   {"ok":false,"error":"invalid_request","message":"\"installationAppType\" must be string"}
 #
-# That field is never set here on purpose — it only matters on the
-# create path this file is not meant to take. Seeing this error means
-# the import step was skipped, not that this mapping needs a fix. Run
-# the import and re-plan.
+# Seeing that error means the import step was skipped, not that this
+# mapping needs a fix. Run the import and re-plan.
+#
+# installation_app_type IS declared below, and it is NOT only a
+# create-path field. The provider is create-and-override: it sends
+# every attribute on update, including nil for attributes absent from
+# the HCL. Undeclared, it blanks the live "github-ocean" value —
+# confirmed in the plan diff on 20 Aug 2026, which read
+# `installation_app_type = "github-ocean" -> null`. See
+# integrationToPortBody.go in the provider source.
 #
 # The provider is create-and-override: once this resource is imported,
 # the UI mapping editor is off limits. A UI edit is silently reverted on
@@ -36,8 +42,9 @@
 ####################################################################
 
 resource "port_integration" "github" {
-  installation_id = var.github_installation_id
-  title           = "GitHub — Mayo pilot"
+  installation_id       = var.github_installation_id
+  installation_app_type = "github-ocean"
+  title                 = "GitHub — Mayo pilot"
 
   config = jsonencode({
     # Private repos only. A HIPAA/HITRUST org has no business ingesting
@@ -54,7 +61,12 @@ resource "port_integration" "github" {
     repoManagedMapping = false
 
     createMissingRelatedEntities = false
-    deleteDependentEntities      = true
+    # false: do not auto-delete Port entities when their source entity
+    # disappears. During the pilot, mappings and repo filters are still
+    # being adjusted; a narrowed filter or a renamed repo should not
+    # silently destroy catalog entries. Orphans are visible and can be
+    # cleaned up deliberately. This is risk area 1 in project-policy.md.
+    deleteDependentEntities = false
 
     resources = [
       {
@@ -142,6 +154,30 @@ resource "port_integration" "github" {
         # DO NOT widen this to ["open","closed"] until G-9 has a
         # written answer from Port support. It is a one-line change and
         # that is exactly why it needs the gate stated here.
+        #
+        # The live tenant carried a SECOND, richer pull-request block
+        # (states ["closed"], since 90, maxResults 300, selector
+        # `.base.ref == "main" and .state == "closed" and
+        # .merged_at != null`) feeding a `deployment` blueprint. It is
+        # deliberately NOT adopted here, and this is the decision, not
+        # an oversight:
+        #
+        #   - It was Ocean default-resource output, not something a
+        #     human wrote for Mayo. Nothing in the spec asks for it.
+        #   - `deployment` is not one of the nine blueprints in the
+        #     shared model, so adopting the block means adopting a
+        #     blueprint FR-005 forbids an integration from creating.
+        #   - Its `service` relation searched the property
+        #     `github_repository_id`, which no blueprint in this model
+        #     defines. That is the exact cause of the live
+        #     "filter on non exists properties is not supported"
+        #     failures — the mapping could never have worked here.
+        #   - `states ["closed"]` + `since 90` is precisely the
+        #     unbounded merged history the G-9 gate above holds back.
+        #
+        # Merged history returns in Phase 4, through this block's
+        # `status` expression, once G-9 has a written answer and a
+        # `deployment` blueprint is a decided part of the model.
         kind = "pull-request"
         selector = {
           query  = "true"

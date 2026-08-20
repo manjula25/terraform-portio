@@ -144,11 +144,28 @@ locals {
 ####################################################################
 resource "port_integration" "gcp" {
   installation_id = var.gcp_installation_id
-  title           = "Google Cloud — Mayo pilot"
+  # Same fix as GitHub: the provider sends every attribute on update,
+  # including nil for attributes not in the HCL. Without this
+  # declaration, apply blanks whatever Port set at install time.
+  #
+  # UNCONFIRMED VALUE, AND HERE THAT MATTERS MORE THAN IT DOES FOR
+  # GITHUB. On 20 Aug 2026 this resource is NOT in state, so the plan
+  # plans a CREATE, not an update — meaning "gcp" would be sent as the
+  # authoritative type of a brand-new integration rather than
+  # re-asserted over a known-good live value. "gcp" is inferred from
+  # Ocean's integration naming (spec.yaml title: GCP, folder
+  # integrations/gcp); it has not been read back from Port.
+  #
+  # Confirm against the live collector BEFORE the first apply:
+  #   GET /v1/integration/<gcp_installation_id>  -> .installationAppType
+  # Steps 1 and 2 of the writer transition below are what make this a
+  # re-assertion over an imported resource instead of a guess.
+  installation_app_type = "gcp"
+  title                 = "Google Cloud — Mayo pilot"
 
   config = jsonencode({
     createMissingRelatedEntities = false
-    deleteDependentEntities      = true
+    deleteDependentEntities      = false
 
     resources = [
       {

@@ -8,6 +8,11 @@ than typed). Derived from `specification.md` §FR-013 and slice `S9`, which supe
 **Research complete; implementation blocked on external access.** The mapping is drafted and
 the one question that blocked planning is now answered. No task below has reached Port.
 
+As of 20 Aug 2026 (session 3) the live-tenant mapping divergence is also **decided**, not merely
+recorded — see [ADR-003](../../adr/ADR-003-code-wins-over-live-ui-mapping.md) and the two
+sections at the end of this file. The remaining blockers are unchanged and external: no GCP
+collector is deployed, so `port_integration.gcp` still plans as a create rather than an import.
+
 Branch: `feat/PHASE2-FR013-gcp-integration`, cut from `main` at `b9ee755`, carrying the two
 GCP commits previously stranded on `feat/PHASE2-pull-request-blueprint`.
 
@@ -248,9 +253,12 @@ and needs a decision, because some may now have entities.
 
 The plan for `port_integration.github` is an **update that removes live configuration**:
 
-- `installation_app_type = "github-ocean" -> null`. The resource does not declare the field, and
-  this provider blanks what a resource does not declare. That is risk area 1 in
-  `project-policy.md`, reproduced here in an actual plan rather than in the abstract.
+- ~~`installation_app_type = "github-ocean" -> null`~~ **FIXED** (20 Aug 2026). The resource
+  now declares `installation_app_type = "github-ocean"`. Root cause confirmed from the provider
+  source (`integrationToPortBody.go`): the provider always sends `InstallationAppType` on update,
+  using `ValueStringPointer()` which returns `nil` for undeclared attributes. Without the
+  declaration, apply blanks the live value. The same fix was applied to `port_integration.gcp`
+  with `installation_app_type = "gcp"` (value to confirm after first import).
 - The live integration carries a **richer `pull-request` mapping than the committed code** —
   `states = ["closed"]`, `since = 90`, `maxResults = 300`, a selector of
   `.base.ref == "main" and .state == "closed" and .merged_at != null`, and a
@@ -354,11 +362,118 @@ cannot advance past task 1 without them.
 
 ## Rollback
 
-Everything in this branch is comments, variable documentation, and two string values. Nothing is
+Everything in this branch is comments, variable documentation, and string values. Nothing is
 applied and nothing reaches Port's stored state, so `git revert` is a complete rollback. The
 writer transition (task 10) is the first step with a Port-side consequence, and step 4 of it
 deliberately uses `terraform state rm` rather than a destroy, so the existing entities are
 orphaned rather than deleted.
+
+## Fixes applied 20 Aug 2026 (session 2)
+
+### `installation_app_type` nulling — FIXED
+
+**Root cause:** The Port Terraform provider (`v2.23.1`) is create-and-override on every
+attribute. In `integrationToPortBody.go`, the update path always calls
+`state.InstallationAppType.ValueStringPointer()`. When the HCL does not declare the attribute,
+Terraform's plan state has it as `types.StringNull`, and `ValueStringPointer()` returns `nil`.
+The Port API then sets `installationAppType` to null on the live integration.
+
+**Evidence:** The plan diff from session 1 showed
+`installation_app_type = "github-ocean" -> null`.
+
+**Fix:**
+- `github-integration.tf`: `installation_app_type = "github-ocean"` (confirmed from live API)
+- `integration-gcp.tf`: `installation_app_type = "gcp"` (expected value; confirm after first
+  import via `GET /v1/integration/<id>`)
+
+**Verification:** `terraform fmt` and `terraform validate` both pass.
+
+### `deleteDependentEntities = true` — FIXED
+
+**Root cause:** Both integration resources had `deleteDependentEntities = true`, which instructs
+Port to automatically delete catalog entities when their source entity disappears from the
+integration's filter. During a pilot where mappings and filters are still being adjusted, a
+narrowed filter or a renamed repo would silently destroy catalog entries — risk area 1 in
+`project-policy.md`.
+
+**Fix:** Changed to `false` in both `github-integration.tf` and `integration-gcp.tf`. Orphaned
+entities are visible in the catalog and can be cleaned up deliberately.
+
+### UI mapping divergence — DECIDED (ADR-003)
+
+The `installation_app_type` fix removed one of the two dangers of applying `mayo-pilot`. The
+other — the live GitHub integration carrying a richer mapping than the committed code — needed a
+decision rather than a code fix, and that decision is now recorded in
+[ADR-003](../../adr/ADR-003-code-wins-over-live-ui-mapping.md): **Terraform wins, and Ocean's
+default resources are discarded rather than merged.**
+
+The divergence was larger than session 2 recorded. Read from
+`terraform show -json tfplan` on the `mayo-pilot` stack, the live config carried **ten** mapping
+blocks against the committed two, every one of them targeting an Ocean default blueprint
+(`githubOrganization`, `githubTeam`, `githubUser`, `githubRepository`, `githubPullRequest`,
+`githubWorkflow`, `githubWorkflowRun`, `deployment`) — none of which is in the shared model.
+The tenant was therefore in the state `FR-005` forbids.
+
+**The two failing rows in the Port UI are explained, and they are not a GCP problem.** The
+`workflow-run -> githubWorkflowRun` and `pull-request -> deployment` blocks both resolve their
+`service` relation by searching the property `github_repository_id`, which no blueprint in this
+model defines:
+
+```
+$ grep -rn github_repository_id modules/ organization/     # no match
+```
+
+Port cannot filter on a property that does not exist, which is verbatim the UI's
+*"filter on non exists properties is not supported"* against `terraform-portio-deploy-1` and
+`terraform-portio-pr-1`. Those mappings could never have worked against this catalog. They are
+resolved by ceasing to exist, not by being repaired — see ADR-003 for why adding
+`github_repository_id` to the shared model was rejected.
+
+### GCP is planned as a create, not an update
+
+`terraform state list` for `mayo-pilot` holds only `port_integration.github`. The plan for this
+branch is therefore:
+
+```
+create  port_entity.environment["dev"]
+create  port_entity.environment["prod"]
+create  port_entity.project
+create  port_integration.gcp
+update  port_integration.github
+```
+
+`port_integration.gcp` being a **create** is the failure this file's header warns about, reached
+exactly as predicted: no collector is deployed, so applying now would create an empty
+integration under `installation_id = "mayo-pilot-gcp"` rather than adopt a real one. Tasks 1 and
+2 of the writer transition are prerequisites for any apply, not optional ordering.
+
+This also sharpens the `installation_app_type = "gcp"` caveat. On a create the value is sent as
+the authoritative type of a new object rather than re-asserted over a known-good live one, so
+"gcp" being inferred rather than read back matters more here than it does for GitHub. The
+comment in `integration-gcp.tf` now says so.
+
+### Rungs actually run, 20 Aug 2026 (session 3)
+
+`./scripts/verify.sh` — every available rung passed, both stacks: `fmt -check -recursive`,
+`init`, `validate`, `plan`, and the no-destroy guard on the shared model. Highest rung reached:
+**plan-diff**. Runtime read-back was **not** captured and remains unavailable (`G-6`, Phase 0
+gate). `scripts/verify-mappings.sh` reports 25/25 jq checks passing — a pre-flight check that
+reads source text, explicitly below the ladder.
+
+One incidental finding from the `organization` plan: `port_blueprint.repository` shows an
+`update`, and it is benign. The only substantive difference is `ownership.path`, which Port
+stored normalized as `service.project.project` against the code's `service.project`. No
+destroy, and the no-destroy guard passes.
+
+**The plan rung was previously reported as failing for the wrong reason.** `verify.sh` printed
+`Unable to find client ID` for both stacks. The credentials in `.env` were valid; the file was
+not shell-parseable. Three Terraform *input* values (`github_installation_id`,
+`github_organizations`, `github_repo_search`) sat in it written with typographic quotes (U+201C)
+and spaces around `=`, so `set -a; . ./.env` aborted at the unterminated string before
+exporting anything. They also duplicated `terraform.tfvars` — carrying the stale `154905752`
+that commit `f2d930e` had already corrected. Removed, with the reason recorded in the file.
+`.env` is gitignored and untracked, so this is local-environment repair, not a repository
+change.
 
 ## What is still true after this plan
 
