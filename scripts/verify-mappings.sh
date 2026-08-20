@@ -111,86 +111,28 @@ if [ -f "$GCP_TF" ]; then
 fi
 
 ####################################################################
-# service.language, from the GitHub mapping
+# service.language, pull_request.status / merged_at / closed_at
 #
-# Enum: typescript|javascript|python|php|go|java|csharp|other. Every
-# GitHub language name must land inside it, or FR-008's "failed count
-# is zero" is unreachable.
+# NOT CHECKED ANY MORE, and deliberately not deleted.
+#
+# The GitHub mapping was reverted to Ocean's own defaults on 20 Aug 2026
+# (see github-integration.tf). Those defaults target githubRepository and
+# githubPullRequest with vendor-supplied jq that nobody in this
+# repository authored, and they no longer write `service` or
+# `pull_request` at all — so there is no expression of OURS left to check
+# on the GitHub side. Checking Ocean's own jq is not this harness's job:
+# it exists to catch defects in expressions we wrote.
+#
+# The cases are preserved in git history at 966c628. If the two-block
+# mapping from ADR-003 is ever restored, restore these with it. They
+# cover three bugs that actually reached the tenant and that no plan can
+# catch: a C# repository breaking a closed enum, a merged pull request
+# rendering as "closed", and a null date-time being rejected.
 ####################################################################
-if [ -f "$GH_TF" ]; then
-  echo "service.language — $GH_TF"
-  if LANG_EXPR="$(extract "$GH_TF" language)"; then
-    assert language "$LANG_EXPR" '{"language":"TypeScript"}' typescript
-    assert language "$LANG_EXPR" '{"language":"JavaScript"}' javascript
-    assert language "$LANG_EXPR" '{"language":"Python"}' python
-    assert language "$LANG_EXPR" '{"language":"PHP"}' php
-    assert language "$LANG_EXPR" '{"language":"Go"}' go
-    assert language "$LANG_EXPR" '{"language":"Java"}' java
-    # The regression: "c#" is not a permitted enum value, "csharp" is.
-    assert language "$LANG_EXPR" '{"language":"C#"}' csharp
-    # Anything outside the enum must degrade to `other`, never leak through.
-    assert language "$LANG_EXPR" '{"language":"C++"}' other
-    assert language "$LANG_EXPR" '{"language":"Rust"}' other
-    assert language "$LANG_EXPR" '{"language":"Kotlin"}' other
-    assert language "$LANG_EXPR" '{"language":null}' other
-    assert language "$LANG_EXPR" '{}' other
-  else
-    failed=$((failed + 1))
-  fi
-  echo
-
-  ####################################################################
-  # pull_request.status (FR-015)
-  #
-  # Enum: open|merged|closed. The provider reports open|closed only;
-  # `merged` is derived from a merge timestamp, and mapping .state
-  # straight through would render every merged pull request "closed" —
-  # wrong on the one transition the phase exit test is about.
-  ####################################################################
-  echo "pull_request.status — $GH_TF"
-  if STATUS="$(extract "$GH_TF" status)"; then
-    assert status "$STATUS" '{"state":"open","merged_at":null}' open
-    assert status "$STATUS" '{"state":"closed","merged_at":"2026-08-19T00:00:00Z"}' merged
-    assert status "$STATUS" '{"state":"closed","merged_at":null}' closed
-    assert status "$STATUS" '{"state":"open"}' open
-  else
-    failed=$((failed + 1))
-  fi
-  echo
-
-  ####################################################################
-  # pull_request.merged_at / closed_at (FR-015)
-  #
-  # Both carry format "date-time" on the blueprint, and an OPEN pull
-  # request has neither. Mapping them straight through sent null and the
-  # first successful sync rejected it:
-  #
-  #   Mapping error for kind pull-request: closed_at, merged_at:
-  #   jq misconfiguration detected for blueprint "pull_request"
-  #
-  # The expression must yield NOTHING for null — an absent optional
-  # property is valid, a null in a date-time field is not. `// empty`
-  # does not work: null is a legitimate value to jq's alternative
-  # operator, so it passes null through. Hence the explicit `if`.
-  #
-  # A passing case here emits no output at all, so these two use a
-  # dedicated assertion rather than the string-compare one.
-  ####################################################################
-  echo "pull_request.merged_at / closed_at — $GH_TF"
-  for f in merged_at closed_at; do
-    if EXPR="$(extract "$GH_TF" "$f")"; then
-      # null must yield NOTHING — assert compares against the empty
-      # string, which is exactly what `empty` produces.
-      assert "$f" "$EXPR" "{\"$f\":null}" ""
-      assert "$f" "$EXPR" "{}" ""
-      # a real timestamp must pass through unchanged
-      assert "$f" "$EXPR" "{\"$f\":\"2026-08-19T00:00:00Z\"}" "2026-08-19T00:00:00Z"
-    else
-      failed=$((failed + 1))
-    fi
-  done
-  echo
-fi
+echo "GitHub mapping expressions — SKIPPED"
+echo "  Ocean's default mapping is in force; no expression there is ours."
+echo "  Restore these checks with the ADR-003 mapping if it comes back."
+echo
 
 echo "Result"
 if [ "$failed" -eq 0 ]; then

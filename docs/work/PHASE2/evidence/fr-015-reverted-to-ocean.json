@@ -1,0 +1,30 @@
+{
+  "captured": "2026-08-20 session 3 — ADR-003 reverted at user request",
+  "status": "Ocean default mapping in force. FR-005 and FR-015 both unmet, deliberately.",
+  "mapping_blocks": 10,
+  "targets": [
+    "organization -> \"githubOrganization\"",
+    "team -> \"githubTeam\"",
+    "user -> \"githubUser\"",
+    "repository -> \"githubRepository\"",
+    "team -> \"githubUser\"",
+    "pull-request -> \"githubPullRequest\"",
+    "workflow -> \"githubWorkflow\"",
+    "workflow-run -> \"githubWorkflowRun\"",
+    "workflow-run -> \"githubWorkflow\"",
+    "pull-request -> \"deployment\""
+  ],
+  "github_repository_id_refs": 0,
+  "entity_counts": {
+    "githubRepository": 26,
+    "githubUser": 2,
+    "githubOrganization": 2,
+    "githubWorkflow": 2,
+    "githubWorkflowRun": 5,
+    "githubPullRequest": 2,
+    "deployment": 1,
+    "service": 25,
+    "pull_request": 0
+  },
+  "orphaned": "service 25 and pull_request 0 are no longer written; deleteDependentEntities=false so they are stranded, not deleted. Port reported: Reconciliation failed: port bulk delete blueprint service."
+}
