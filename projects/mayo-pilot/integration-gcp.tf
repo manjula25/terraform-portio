@@ -189,7 +189,7 @@ resource "port_integration" "gcp" {
         }
         port = {
           entity = {
-            mappings = [{
+            mappings = {
               # Matches the hand-declared convention
               # (${project_identifier}-${stage}) so the writer
               # transition replaces FR-003's entities, not duplicates.
@@ -229,7 +229,7 @@ resource "port_integration" "gcp" {
               relations = {
                 project = "\"${var.project_identifier}\""
               }
-            }]
+            }
           }
         }
       },

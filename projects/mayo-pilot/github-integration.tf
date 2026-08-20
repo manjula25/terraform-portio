@@ -46,15 +46,58 @@ resource "port_integration" "github" {
   installation_app_type = "github-ocean"
   title                 = "GitHub — Mayo pilot"
 
-  config = jsonencode({
-    # Private repos only. A HIPAA/HITRUST org has no business ingesting
-    # public forks into the catalog.
-    repositoryType = "private"
+  config = jsonencode(merge({
+    # A HIPAA/HITRUST org has no business ingesting public forks into
+    # the catalog, so "private" is the value Mayo's real tenant must
+    # run with, and it is the variable's default.
+    #
+    # It is a VARIABLE rather than a literal because this sandbox has no
+    # private repository that GitHub's search API returns to the App.
+    # Measured 20 Aug 2026: with repositoryType="private" the resync
+    # completed cleanly and reported
+    #   Finished registering kind: repository-0, 0 entities out of 0 raw results
+    # while the 12:55 sync that DID produce data had no repositoryType
+    # set at all and fetched a mix of public and private repos
+    # (terraform-portio, hellosign-embedded, SAMPLE_ADLC, claude-workflow).
+    #
+    # So the filter is correct for production and empties the sandbox.
+    # Overriding it to "all" is a SANDBOX-ONLY setting and belongs in
+    # the gitignored terraform.tfvars, never in a committed default.
+    repositoryType = var.github_repository_type
 
     # Start narrow. Widening is a one-line PR; unwinding a full-org
     # sync that created hundreds of unowned services is not.
-    repoSearch    = var.github_repo_search
+    #
+    # BOTH ARE OPTIONAL, and setting either changes HOW Ocean finds
+    # repositories — not just how many. Measured 20 Aug 2026:
+    #
+    #   with repoSearch set  -> Ocean calls GET /search/repositories and
+    #                           the sync reported "0 entities out of 0
+    #                           raw results" every time
+    #   with both unset      -> Ocean enumerates the repositories the
+    #                           GitHub App is installed on, which is what
+    #                           the 12:55 sync did when it fetched
+    #                           terraform-portio, hellosign-embedded,
+    #                           SAMPLE_ADLC and claude-workflow
+    #
+    # The App-installation list is the reliable source: it is exactly the
+    # set someone granted Port access to, so it needs no search syntax to
+    # be right. A null here means "every repo the App can see", which is
+    # correct for a pilot whose App is scoped deliberately.
+    #
+    # Narrowing later belongs in var.github_repo_search, and if it is set
+    # it must be valid GitHub search syntax — one `repo:` qualifier, or a
+    # topic. Two `repo:` terms are ANDed and match nothing.
+    # Sent only when set. jsonencode keeps an explicit null as a present
+    # key, and Ocean treats `"repoSearch": null` as "search with an empty
+    # query" rather than "no search" — so the key has to be absent, not
+    # null. A merge is the only way to make a key conditional inside
+    # jsonencode.
+    }, var.github_repo_search == null ? {} : {
+    repoSearch = var.github_repo_search
+    }, var.github_organizations == null ? {} : {
     organizations = var.github_organizations
+    }, {
 
     # Mapping lives here, not in the org's .github-private repo. Two
     # sources of mapping truth is the same failure mode as UI + Terraform.
@@ -85,7 +128,7 @@ resource "port_integration" "github" {
         }
         port = {
           entity = {
-            mappings = [{
+            mappings = {
               identifier = ".name"
               title      = ".name"
               blueprint  = "\"service\""
@@ -149,7 +192,7 @@ resource "port_integration" "github" {
                 # rather than installed once org-wide.
                 project = "\"${var.project_identifier}\""
               }
-            }]
+            }
           }
         }
       },
@@ -201,7 +244,7 @@ resource "port_integration" "github" {
         }
         port = {
           entity = {
-            mappings = [{
+            mappings = {
               # .__repository is injected by Ocean and resolves to the
               # repository NAME as a string — the same value the
               # `repository` kind above uses as its service identifier
@@ -234,7 +277,7 @@ resource "port_integration" "github" {
                 # repository entities.
                 service = ".__repository"
               }
-            }]
+            }
           }
         }
       },
@@ -250,7 +293,7 @@ resource "port_integration" "github" {
     # `pull-request` landed in Phase 2 (FR-015) because the phase exit
     # test names it explicitly. Merged-PR history stays a Phase 4
     # concern — see the states filter above.
-  })
+  }))
 }
 
 output "github_integration_id" {

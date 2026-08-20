@@ -111,8 +111,14 @@ variable "github_installation_id" {
 }
 
 variable "github_organizations" {
-  description = "GitHub organizations to ingest from."
+  description = <<-EOT
+    GitHub organizations to ingest from. NULL means "do not send it",
+    which is correct when the account is a personal user rather than an
+    organisation, and lets Ocean use the App-installation list.
+  EOT
   type        = list(string)
+  default     = null
+  nullable    = true
 }
 
 variable "github_repo_search" {
@@ -123,8 +129,15 @@ variable "github_repo_search" {
     pilot in repositories nobody owns.
 
     Example: "org:mayo-clinic topic:port-pilot"
+
+    NULL means "do not send repoSearch at all", which makes Ocean
+    enumerate the repositories the GitHub App is installed on instead of
+    calling GitHub's search API. That is the reliable source for a pilot
+    — see the comment in github-integration.tf.
   EOT
   type        = string
+  default     = null
+  nullable    = true
 }
 
 ####################################################################
@@ -184,4 +197,26 @@ variable "gcp_project_filter" {
       ".labels.port-pilot == \"true\""
   EOT
   type        = string
+}
+
+variable "github_repository_type" {
+  description = <<-EOT
+    Which repositories the GitHub integration ingests: "private", "public",
+    or "all".
+
+    DEFAULTS TO "private" AND SHOULD STAY THERE FOR MAYO. A HIPAA/HITRUST
+    organisation has no business pulling public forks into the catalog.
+
+    Override it only in a sandbox, and only in the gitignored
+    terraform.tfvars. The pilot sandbox has no private repository that
+    GitHub's search API returns to the installed App, so "private" there
+    yields zero entities — a silent empty result, not an error.
+  EOT
+  type        = string
+  default     = "private"
+
+  validation {
+    condition     = contains(["private", "public", "all"], var.github_repository_type)
+    error_message = "github_repository_type must be one of: private, public, all."
+  }
 }
