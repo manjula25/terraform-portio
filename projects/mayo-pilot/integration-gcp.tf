@@ -64,15 +64,35 @@
 locals {
   # Derive stage from the GCP project display name per IRIS d/t/s/p.
   # Splits on "-", finds the first single-character segment, maps it.
-  # Returns "unknown" on no match — fails the blueprint's enum
-  # validation and lands in the failed-transform counter, making the
-  # error visible rather than silently guessing (M-2).
+  # Returns "unknown" on no match — which fails the blueprint's stage
+  # enum, lands in the failed-transform counter, and so makes the
+  # miss visible rather than silently guessing (M-2).
+  #
+  # FIXED. The previous form ended `| first | {d:"dev",...}[.] //
+  # "unknown"`, which did NOT return "unknown" on no match — it
+  # ABORTED:
+  #
+  #   $ echo '{"display_name":"iris-prod"}' | jq -r '<old expression>'
+  #   jq: error (at <stdin>:1): Cannot index object with null
+  #
+  # `first` yields null when no segment is single-character, and
+  # indexing an object with null is a jq error, not a null result, so
+  # the `// "unknown"` fallback was never reached. Any pilot project
+  # whose name does not happen to carry a d/t/s/p segment — including
+  # the plausible "iris-prod" — would have failed with a jq error
+  # instead of the visible enum failure the comment promised. Binding
+  # `first` to $seg and defaulting it BEFORE the index is what makes
+  # the documented behaviour actually happen.
+  #
+  # Verified against iris-{d,t,s,p}-app, IRIS-D-App, iris-prod,
+  # iris-x-app, iris, an empty display_name, and a document with no
+  # display_name key at all.
   #
   # PLACEHOLDER — confirm against real Mayo project names before
   # applying. If the convention is a prefix, suffix, or label rather
   # than a dash-segment, this expression and the identifier mapping
   # below change with it.
-  gcp_stage_jq = "(.display_name | ascii_downcase | split(\"-\")) | map(select(length == 1)) | first | {d:\"dev\",t:\"test\",s:\"stage\",p:\"prod\"}[.] // \"unknown\""
+  gcp_stage_jq = "(.display_name // \"\" | ascii_downcase | split(\"-\") | map(select(length == 1)) | first) as $seg | {d:\"dev\",t:\"test\",s:\"stage\",p:\"prod\"}[$seg // \"\"] // \"unknown\""
 }
 
 ####################################################################

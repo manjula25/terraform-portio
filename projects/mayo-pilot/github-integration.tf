@@ -81,7 +81,29 @@ resource "port_integration" "github" {
                 # jq expressions, evaluated against the GitHub API
                 # response. Strings must be quoted inside the expression
                 # to be literals.
-                language = ".language // \"other\" | ascii_downcase"
+                #
+                # FIXED. This was `.language // "other" | ascii_downcase`,
+                # which lowercases GitHub's language name and hands it
+                # straight to a closed enum. Measured:
+                #
+                #   "C#"         -> "c#"      not in the enum
+                #   "C++"        -> "c++"     not in the enum
+                #   "TypeScript" -> "typescript"   fine
+                #
+                # `service.language` permits exactly typescript,
+                # javascript, python, php, go, java, csharp, other. So a
+                # single C# repository in the pilot produced a rejected
+                # entity, and FR-008 requires the failed counter to be
+                # ZERO — one C# repo made that criterion unreachable
+                # while looking like a data problem rather than a
+                # mapping bug.
+                #
+                # An explicit lookup with an `other` fallback is what
+                # makes the enum closed on our side instead of hoping
+                # GitHub's vocabulary matches ours. Anything unlisted —
+                # Rust, Kotlin, Scala, C++ — lands in `other`, which is
+                # a value the enum actually has.
+                language = "(.language // \"other\" | ascii_downcase) as $l | {\"c#\":\"csharp\",\"csharp\":\"csharp\",\"typescript\":\"typescript\",\"javascript\":\"javascript\",\"python\":\"python\",\"php\":\"php\",\"go\":\"go\",\"java\":\"java\"}[$l] // \"other\""
 
                 # Ingestion cannot know lifecycle. Everything arrives
                 # experimental and is promoted deliberately, by a human
