@@ -117,6 +117,22 @@ resource "port_integration" "github" {
                 # a value the enum actually has.
                 language = "(.language // \"other\" | ascii_downcase) as $l | {\"c#\":\"csharp\",\"csharp\":\"csharp\",\"typescript\":\"typescript\",\"javascript\":\"javascript\",\"python\":\"python\",\"php\":\"php\",\"go\":\"go\",\"java\":\"java\"}[$l] // \"other\""
 
+                # REQUIRED on the blueprint, and the mapping did not set
+                # it until 20 Aug 2026 — which made every single service
+                # transform fail validation, silently. The failure looked
+                # exactly like "no repositories matched the filter": zero
+                # entities, no error surfaced on the data-source card.
+                #
+                # Ingestion cannot know a repository's kind any more than
+                # it can know its lifecycle. The enum is closed (web,
+                # mobile, api, worker, job) so there is no "unknown" to
+                # park it in, and DM-4 made it required deliberately.
+                # "api" is the honest default for a backend-shaped repo
+                # and is the most common kind in this estate; a later
+                # mapping rule on a repo topic is how a service gets
+                # reclassified, not a guess per repository here.
+                kind = "\"api\""
+
                 # Ingestion cannot know lifecycle. Everything arrives
                 # experimental and is promoted deliberately, by a human
                 # or by a later mapping rule on a repo topic. Defaulting
