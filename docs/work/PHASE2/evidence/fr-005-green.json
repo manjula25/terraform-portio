@@ -1,0 +1,40 @@
+{
+  "captured": "2026-08-20 session 3, after the prune",
+  "requirement": "FR-005",
+  "evidence_label": "E-READ",
+  "claim": "The organization blueprint list contains no integration-created type; every non-system blueprint is declared in modules/core-blueprints/.",
+  "source": "GET /v1/blueprints",
+  "tenant": "org_cL6ah7foAp0V8Ajo",
+  "total_blueprints": 21,
+  "declared": [
+    "agent",
+    "ai_usage",
+    "environment",
+    "ingestion_source",
+    "mcp_server",
+    "project",
+    "pull_request",
+    "repository",
+    "service",
+    "skill"
+  ],
+  "port_system_untouched": [
+    "_ai_agent",
+    "_ai_conversation",
+    "_ai_invocations",
+    "_ai_plan",
+    "_mcp_server",
+    "_rule",
+    "_rule_result",
+    "_scorecard",
+    "_team",
+    "_user",
+    "_workflow"
+  ],
+  "undeclared_remaining": [],
+  "before": {
+    "total": 62,
+    "ocean_defaults": 41,
+    "entities_deleted": 33
+  }
+}

@@ -542,9 +542,9 @@ an empty result, not an error. `service = 0` looked identical to "the sync has n
   them. Verify counts after that.
 - **GCP is not deployed and cannot be today from this workstation.** `gcloud`, `helm` and
   `kubectl` are all absent; only `docker` is present. See the section below.
-- **41 Ocean default blueprints remain** (`azureDevops*`, `datadog*`, `jira*`, `newRelic*`,
-  `github*`, `awsAccount`, `deployment`, `cloudResource`, `organization`, `workload`), holding 33
-  now-orphaned entities — 25 of them `githubRepository`. `FR-005` is still failing.
-  `scripts/prune-ocean-blueprints.sh` removes them and is dry-run verified but **not executed**;
-  the count, the dependency analysis, and the run procedure are in
-  [`fr-005-ocean-blueprint-prune.md`](fr-005-ocean-blueprint-prune.md).
+- ~~41 Ocean default blueprints remain~~ **RESOLVED 20 Aug 2026.** All 41 and their 33 orphaned
+  entities were deleted; the tenant went from 62 blueprints to 21 (our 10 plus 11 Port system).
+  `FR-005` now **passes**, verified by reading `GET /v1/blueprints` back —
+  `evidence/fr-005-green.json`. See
+  [`fr-005-ocean-blueprint-prune.md`](fr-005-ocean-blueprint-prune.md), including the correction
+  that Port does not cascade entity deletion.

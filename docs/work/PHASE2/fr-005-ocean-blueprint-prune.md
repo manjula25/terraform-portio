@@ -5,9 +5,12 @@ catalog). Written 20 Aug 2026.
 
 ## Status
 
-**Tooling built and dry-run verified. Not executed.** `scripts/prune-ocean-blueprints.sh` is
-committed and its dry run is clean; the deletion itself has not been run, so FR-005 is **still
-failing** as of this commit.
+**Done. FR-005 passes.** Executed 20 Aug 2026 against the production tenant. The blueprint list
+went from **62 to 21**: our 10, plus the 11 Port system blueprints, and nothing else. 41 Ocean
+default blueprints and their 33 entities are gone.
+
+Verified by reading `GET /v1/blueprints` back, independently of the script's own assertion —
+`evidence/fr-005-green.json`. This is the `E-READ` evidence the requirement asks for.
 
 ## What FR-005 requires
 
@@ -84,6 +87,22 @@ model was quietly attaching itself to ours.
 The 41 also relate to **each other** (69 edges; `azureDevopsProject` is depended on by 10).
 Port refuses to delete a blueprint another still targets, so the script deletes in repeated
 passes, taking whatever has become a leaf each time, and stops when a pass makes no progress.
+That mechanism worked: `azureDevopsPipelineRun`, `azureDevopsPipelineStage`, and three
+`newRelic*` blueprints failed on pass 1 and succeeded on pass 2.
+
+### Correction — Port does not cascade entity deletion
+
+The first run assumed deleting a blueprint would take its entities with it. **It does not.**
+34 of 41 were removed and exactly the seven holding entities refused, each with:
+
+```
+This Blueprint cannot be deleted because there are existing "<identifier>" entities
+```
+
+The script now empties each candidate first —
+`DELETE /v1/blueprints/<bp>/entities/<id>?delete_dependents=true` — and only then deletes the
+blueprint. The second run removed all 33 entities and all seven remaining blueprints on a single
+pass. Two runs were needed only because the first taught us this; a fresh tenant would take one.
 
 ## Safety properties of the script
 
@@ -94,7 +113,7 @@ passes, taking whatever has become a leaf each time, and stops when a pass makes
    repository actually owns, and if the derivation yields nothing the script refuses to run
    rather than treating every blueprint as deletable.
 3. **Entity counts are reported per blueprint, and totalled, before anything is deleted.**
-   Deleting a blueprint deletes its entities.
+   The entities are deleted first, explicitly — see the correction below.
 4. **Dry run is the default.** `--apply` is required to delete.
 5. **It asserts FR-005 itself** afterwards, re-reading `GET /v1/blueprints` and exiting non-zero
    if any undeclared blueprint remains.
@@ -121,20 +140,38 @@ curl -s "$PORT_BASE_URL/v1/blueprints" \
   > docs/work/PHASE2/evidence/fr-005-pre-prune-backup.json
 ```
 
-That backup was **not** captured in this session and is not in `evidence/`.
+Both backups **were** taken before this prune ran:
+
+- `evidence/fr-005-pre-prune-backup.json` — all 62 blueprints with full schemas and relations,
+  verified to contain every one of the 41 deleted.
+- `evidence/fr-005-pre-prune-entities.json` — the 33 deleted entities, by blueprint, with their
+  identifiers.
 
 ## Evidence
 
-Dry run only, at the read seam (`GET /v1/blueprints`, `GET /v1/blueprints/<id>`,
-`GET /v1/blueprints/<id>/entities`). The `E-READ` evidence FR-005 actually calls for — the
-blueprint list as Port returns it, containing only declared types — **cannot be captured until
-the deletion runs**. Do not record FR-005 as met before then.
+`E-READ`, captured at the sanctioned seam — the blueprint list as Port returns it, not the source
+text:
 
-## Consequences once run
+| File | What it holds |
+|---|---|
+| `evidence/fr-005-green.json` | the list after: 21 total, 10 declared, 11 system, **0 undeclared** |
+| `evidence/fr-005-pre-prune-backup.json` | all 62 before, with full schemas |
+| `evidence/fr-005-pre-prune-entities.json` | the 33 entities deleted |
+
+The GREEN file was built from an independent `GET /v1/blueprints` after the run, not from the
+script's own exit status. `./scripts/verify.sh` passes every available rung on both stacks
+afterwards, and the `organization` plan shows no drift — deleting undeclared blueprints did not
+disturb the ten Terraform owns.
+
+## Observed after the run
 
 - The Port sidebar loses the Jira, Datadog, New Relic, Azure DevOps and leftover GitHub pages.
-- 33 orphaned entities disappear, including the 25 `githubRepository` records.
+- 33 orphaned entities are gone, including the 25 `githubRepository` records.
 - `FR-005` passes, and the Phase 1 incident it was written against is closed out.
+- Our own entities are untouched: `project` 1, `environment` 2, and the integration mapping still
+  reads `blocks=2`, `installationAppType=github-ocean`.
+- `service` and `pull_request` are still 0 — unrelated to this work. They await a UI **Resync**;
+  see `implementation-plan-fr-013.md`.
 - Re-running the Ocean installer with default resources enabled recreates all of them. The
   guard is `createPortResourcesOrigin=Empty` at install — documented in `integration-gcp.tf`
   step 1 for the GCP collector, and the same trap applies to any future integration.

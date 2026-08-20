@@ -132,12 +132,44 @@ if [ "$APPLY" -eq 0 ]; then
   exit 0
 fi
 
+# --- entities first ----------------------------------------------------------
+# Port does NOT cascade. Deleting a blueprint that still holds entities fails
+# with "This Blueprint cannot be deleted because there are existing <id>
+# entities" — measured on 20 Aug 2026, when a first run removed 34 of 41 and
+# left exactly the seven that had entities. So empty each candidate before
+# attempting the blueprint itself.
+say "Deleting entities from candidate blueprints"
+for b in $CANDIDATES; do
+  ids="$(curl -s --max-time 25 "$BASE/v1/blueprints/$b/entities" "${AUTH[@]}" \
+         | jq -r '.entities[]?.identifier')"
+  [ -n "$(printf '%s' "$ids" | tr -d '[:space:]')" ] || continue
+  n=0; fail=0
+  while IFS= read -r e; do
+    [ -n "$e" ] || continue
+    # delete_dependents so an entity another entity still relates to goes too
+    code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 -X DELETE \
+      "$BASE/v1/blueprints/$b/entities/$(printf '%s' "$e" | jq -sRr @uri)?delete_dependents=true" \
+      "${AUTH[@]}")"
+    case "$code" in
+      200|202|204|404) n=$(( n + 1 )) ;;
+      *)               fail=$(( fail + 1 )) ;;
+    esac
+  done <<EOF
+$ids
+EOF
+  if [ "$fail" -eq 0 ]; then
+    ok "$b — $n entities removed"
+  else
+    bad "$b" "$n removed, $fail failed"
+  fi
+done
+
 # --- deletion, leaves first --------------------------------------------------
-# These blueprints relate to one another, and Port refuses to delete a target
-# another blueprint still points at. Instead of topologically sorting, retry in
-# passes: each pass deletes whatever has become a leaf. Terminates when a pass
-# makes no progress.
-say "Deleting — repeated passes, leaves first"
+# These blueprints also relate to one another, and Port refuses to delete a
+# target another blueprint still points at. Instead of topologically sorting,
+# retry in passes: each pass deletes whatever has become a leaf. Terminates
+# when a pass makes no progress.
+say "Deleting blueprints — repeated passes, leaves first"
 remaining="$CANDIDATES"
 pass=1
 while [ -n "$(printf '%s' "$remaining" | tr -d '[:space:]')" ]; do
