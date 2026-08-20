@@ -1,0 +1,15 @@
+{
+  "captured": "2026-08-20 session 3 — RUNTIME READ-BACK",
+  "note": "First runtime evidence in this repository. Read from GET /v1/integration/github-ocean after a targeted apply. Rung previously unavailable (G-6) because no non-production org exists; this is the production tenant, applied deliberately and recorded as such.",
+  "installationAppType": "github-ocean",
+  "title": "GitHub — Mayo pilot",
+  "mapping_block_count": 2,
+  "mapping": [
+    "repository -> \"service\"",
+    "pull-request -> \"pull_request\""
+  ],
+  "repositoryType": "private",
+  "repoSearch": "repo:manjula25/auth repo:manjula25/claude-workflow",
+  "deleteDependentEntities": false,
+  "github_repository_id_present": false
+}

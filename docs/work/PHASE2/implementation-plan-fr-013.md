@@ -481,3 +481,67 @@ The pilot's environments are still hand-typed. What changes is that the file whi
 them is no longer built on an unverified assumption, the `FR-005` trap in the deployment
 parameters is documented before anyone trips it, and the `cloud_project_id` mapping would have
 stored a project number instead of a project ID.
+
+## Applied to the live tenant, 20 Aug 2026 (session 3)
+
+**Runtime read-back is no longer unavailable for this change.** It was captured against the
+production tenant, deliberately, because no non-production organization exists (`G-6`) and the
+sync was failing every four hours. Evidence: `evidence/fr-013-runtime-readback.json`.
+
+Three targeted applies, each from a saved plan verified to contain no `delete`:
+
+1. `-target=port_integration.github` — collapsed the live mapping from ten blocks to two.
+   Read back: `blocks=2`, `repository -> service`, `pull-request -> pull_request`,
+   `installationAppType=github-ocean` (not nulled), and no `github_repository_id` anywhere in
+   the integration config. **The cause of the UI sync failures is gone.**
+2. `-target=port_entity.project -target=port_entity.environment` — created `mayo-pilot`,
+   `mayo-pilot-dev`, `mayo-pilot-prod`.
+3. `-target=port_integration.github` again — corrected `repoSearch` (see below).
+
+`-target` was used rather than a whole-stack apply for one reason: the stack also contains
+`port_integration.gcp`, which plans a **create** with no collector deployed. An untargeted apply
+would have created the empty integration this file's header warns about.
+
+### Two blockers found only by applying
+
+Neither was visible at the plan rung. Both are in the gitignored `terraform.tfvars`, so neither
+is a defect in committed code — but both are the kind of thing the plan rung structurally cannot
+catch, which is the argument for this section existing.
+
+**1. `owning_team` was a title, not an identifier.** The apply failed:
+
+```
+{"ok":false,"error":"not_found","message":"Entity with identifier
+ \"default-team\" does not exist in the blueprint \"_team\""}
+```
+
+`GET /v1/teams` reports `name="default-team"`, and the `_team` blueprint stores that same team
+with `identifier="default_team"` (underscore) and `title="default-team"` (hyphen). A
+`port_entity` relation resolves by **identifier**. The comment in `terraform.tfvars` cited
+`GET /v1/teams` as its authority, which is what made the hyphen form look confirmed.
+
+**2. `repositoryType = "private"` ANDs with `repoSearch`, and the two contradicted.**
+After fixing the team, `service` still synced **zero** entities — silently, with no error
+anywhere. `repoSearch` named `repo:manjula25/terraform-portio`, and that repository is
+**public**, so the `private` guardrail in `github-integration.tf` filtered it out entirely.
+Of the 25 repositories in the sandbox, 13 are private and 12 public. Pointed `repoSearch` at
+`auth` and `claude-workflow`, both private.
+
+`repositoryType = "private"` was left alone deliberately — it is a HIPAA/HITRUST guardrail, not
+a tuning knob, and weakening it to make a sync produce rows would be the wrong repair.
+
+**The failure mode worth remembering:** a contradiction between two ingestion filters produces
+an empty result, not an error. `service = 0` looked identical to "the sync has not run yet".
+
+### Still open
+
+- **`service` and `pull_request` remain at 0 entities.** The mapping and both filters are now
+  correct in the tenant, but `POST /v1/integration/github-ocean/resync` returns `{"ok":true}`
+  without running a sync — `resyncState.lastResyncEnd` stayed at `2026-08-20T07:25:26Z` across
+  three calls. The **Resync** button in the UI, or the next 4-hourly run, is what will populate
+  them. Verify counts after that.
+- **GCP is not deployed and cannot be today from this workstation.** `gcloud`, `helm` and
+  `kubectl` are all absent; only `docker` is present. See the section below.
+- **~40 Ocean default blueprints remain** (`azureDevops*`, `datadog*`, `jira*`, `newRelic*`,
+  `github*`, `awsAccount`, `deployment`, `cloudResource`, `workload`). `FR-005` is still failing.
+  `githubRepository` still holds 25 entities, now orphaned — nothing writes them.
