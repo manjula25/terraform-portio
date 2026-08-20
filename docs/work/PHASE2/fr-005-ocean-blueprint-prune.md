@@ -5,12 +5,24 @@ catalog). Written 20 Aug 2026.
 
 ## Status
 
-**Done. FR-005 passes.** Executed 20 Aug 2026 against the production tenant. The blueprint list
-went from **62 to 21**: our 10, plus the 11 Port system blueprints, and nothing else. 41 Ocean
-default blueprints and their 33 entities are gone.
+**FR-005 currently FAILS. The prune ran and was then deliberately reverted.**
 
-Verified by reading `GET /v1/blueprints` back, independently of the script's own assertion —
-`evidence/fr-005-green.json`. This is the `E-READ` evidence the requirement asks for.
+Timeline, all on 20 Aug 2026:
+
+1. Pruned — 41 Ocean blueprints and their 33 entities deleted. Tenant went 62 → 21 blueprints.
+   FR-005 passed, verified by an independent `GET /v1/blueprints`: `evidence/fr-005-green.json`.
+2. **Reverted at the user's request** — all 41 restored from
+   `evidence/fr-005-pre-prune-backup.json` by `scripts/restore-ocean-blueprints.sh`. Tenant back
+   to 62. FR-005 fails again: `evidence/fr-005-reverted.json` records 41 undeclared blueprints
+   present.
+
+**The 33 entities were not restored and cannot be by this route.** They were catalog data written
+by the integration, not configuration. `evidence/fr-005-pre-prune-entities.json` holds their
+identifiers for audit. Only a sync recreates entities — and after ADR-003 the mapping no longer
+targets those blueprints, so a sync will not repopulate them either. They are gone.
+
+Everything below documents the prune. It remains accurate as the description of what the script
+does and why; it is simply not the current state of the tenant.
 
 ## What FR-005 requires
 
@@ -175,3 +187,45 @@ disturb the ten Terraform owns.
 - Re-running the Ocean installer with default resources enabled recreates all of them. The
   guard is `createPortResourcesOrigin=Empty` at install — documented in `integration-gcp.tf`
   step 1 for the GCP collector, and the same trap applies to any future integration.
+
+
+## The rollback, 20 Aug 2026
+
+`scripts/restore-ocean-blueprints.sh` recreates all 41 from the backup the prune took first. It
+exists because the prune is destructive and the backup would otherwise be an untested artifact —
+a backup nobody has restored from is a hope, not a rollback.
+
+### Restoring needs three passes, not two
+
+The first attempt used two passes — create without relations, then PATCH relations on — and
+recreated only 31 of 41. Ten failed, with errors that name the real constraint:
+
+```
+deployment          Relation with identifier "github_pull_request" was not found
+githubRepository    Blueprint with identifier "githubWorkflowRun" was not found
+githubWorkflowRun   The path entered to "$title" do not exists
+```
+
+**`mirrorProperties` and `aggregationProperties` traverse relations**, so they are as
+order-dependent as relations themselves. `githubWorkflowRun` mirrors `service.$title` and
+`workflow.result`; `githubRepository` aggregates ten properties over `githubWorkflowRun`. Sending
+either at create time fails when the relation, or the blueprint at the far end of it, does not
+exist yet.
+
+The working order:
+
+| Pass | Sends | Why it must be here |
+|---|---|---|
+| 1 | `identifier`, `title`, `icon`, `schema`, `calculationProperties` | self-contained — calculations are jq over the blueprint's own properties |
+| 2a | `relations` | every target blueprint now exists |
+| 2b | `mirrorProperties`, `aggregationProperties` | these traverse the relations from 2a |
+
+Verified afterwards by comparing live against the backup on all 41, on relation, mirror and
+aggregation counts — all match. Two Azure DevOps blueprints needed one extra PATCH because the
+first partial run had left them half-configured.
+
+### What this says about the prune
+
+The prune is reversible for **schema**, and not for **data**. That asymmetry is the thing to
+carry forward: 41 blueprint definitions came back exactly; 33 entities did not, and no rerun of
+anything will bring them back now that the mapping no longer targets those types.

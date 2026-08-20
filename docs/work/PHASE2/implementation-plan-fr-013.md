@@ -542,9 +542,10 @@ an empty result, not an error. `service = 0` looked identical to "the sync has n
   them. Verify counts after that.
 - **GCP is not deployed and cannot be today from this workstation.** `gcloud`, `helm` and
   `kubectl` are all absent; only `docker` is present. See the section below.
-- ~~41 Ocean default blueprints remain~~ **RESOLVED 20 Aug 2026.** All 41 and their 33 orphaned
-  entities were deleted; the tenant went from 62 blueprints to 21 (our 10 plus 11 Port system).
-  `FR-005` now **passes**, verified by reading `GET /v1/blueprints` back —
-  `evidence/fr-005-green.json`. See
-  [`fr-005-ocean-blueprint-prune.md`](fr-005-ocean-blueprint-prune.md), including the correction
-  that Port does not cascade entity deletion.
+- **41 Ocean default blueprints are present and `FR-005` fails.** They were deleted on 20 Aug
+  2026 (tenant 62 → 21, FR-005 passing, `evidence/fr-005-green.json`) and then **restored at the
+  user's request** the same day (`evidence/fr-005-reverted.json`). Their 33 entities were not
+  restored and cannot be — see
+  [`fr-005-ocean-blueprint-prune.md`](fr-005-ocean-blueprint-prune.md), which also records that
+  Port does not cascade entity deletion, and that restoring needs three passes because
+  mirror/aggregation properties traverse relations.
