@@ -38,14 +38,28 @@
 # or the Terraform method (live events); neither `helm` nor `kubectl` is
 # available on the machine this was first run from.
 #
-#   docker run --rm --env-file <env> \
+# TO RUN A SYNC, from the repository root:
+#
+#   docker run --rm --env-file .env.jira \
 #     ghcr.io/port-labs/port-ocean-jira:latest
 #
-#   OCEAN__INTEGRATION__IDENTIFIER      = var.jira_installation_id
-#   OCEAN__INTEGRATION__CONFIG__JIRA_HOST
-#   OCEAN__INTEGRATION__CONFIG__ATLASSIAN_USER_EMAIL
-#   OCEAN__INTEGRATION__CONFIG__ATLASSIAN_USER_TOKEN
-#   OCEAN__CREATE_PORT_RESOURCES_ORIGIN = "Empty"
+# `.env.jira` is gitignored (.env.* ) and chmod 600. It is a SIBLING of
+# .env rather than part of it, so the Atlassian token is not exported
+# into every shell that runs terraform. Its own header documents the
+# variables; the two that bite are:
+#
+#   OCEAN__INTEGRATION__IDENTIFIER must equal var.jira_installation_id,
+#     or the import adopts nothing and the apply makes a second, empty
+#     integration.
+#   OCEAN__CREATE_PORT_RESOURCES_ORIGIN = "Empty", or Ocean creates its
+#     own Jira blueprints on top of the existing ones.
+#
+# The Atlassian value must be a PERSONAL API token from
+# id.atlassian.com/manage-profile/security/api-tokens (prefix ATATT),
+# not an org admin key from admin.atlassian.com (prefix ATCTT). The
+# admin key fails Basic auth with 401 while /project/search still
+# answers anonymously with total 0 — so the collector reports "0 raw
+# results" and reads as a filter bug rather than an auth failure.
 #
 # `CREATE_PORT_RESOURCES_ORIGIN=Empty` is not optional. Without it Ocean
 # creates its own Jira blueprints on top of the ones already in this
