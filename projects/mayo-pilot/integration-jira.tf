@@ -122,12 +122,18 @@ resource "port_integration" "jira" {
               blueprint = "\"jiraIssue\""
 
               properties = {
-                url            = "\"${var.jira_host}/browse/\" + .key"
-                status         = ".fields.status.name"
-                issueType      = ".fields.issuetype.name"
-                components     = "[.fields.components[].name]"
-                creator        = ".fields.creator.emailAddress // .fields.creator.displayName"
-                priority       = ".fields.priority.name"
+                url        = "\"${var.jira_host}/browse/\" + .key"
+                status     = ".fields.status.name"
+                issueType  = ".fields.issuetype.name"
+                components = "[.fields.components[].name]"
+                creator    = ".fields.creator.emailAddress // .fields.creator.displayName"
+
+                # Guarded: this project has no priority scheme, so
+                # .fields.priority is null on every issue and
+                # `.fields.priority.name` fails with "Cannot index null".
+                # Measured 20 Aug 2026 — "Mapping error for kind issue:
+                # priority, resolutionDate (5 rows affected)".
+                priority       = "if .fields.priority then .fields.priority.name else empty end"
                 labels         = ".fields.labels"
                 created        = ".fields.created"
                 updated        = ".fields.updated"
@@ -137,12 +143,22 @@ resource "port_integration" "jira" {
               relations = {
                 project = ".fields.project.key"
 
-                # `if ... else empty end`, not `// empty`: null is a
-                # legitimate value to jq's alternative operator, so `//`
-                # passes null straight through and Port rejects it. This
-                # exact form was needed for merged_at/closed_at on the
-                # pull_request mapping the same day.
-                parentIssue = "if .fields.parent then .fields.parent.key else empty end"
+                # parentIssue is DELIBERATELY NOT MAPPED.
+                #
+                # It resolved, but to issues the JQL filter excludes. A
+                # subtask whose parent is Done points at an entity that
+                # was never ingested, and createMissingRelatedEntities is
+                # false, so Port rejected the whole entity:
+                #
+                #   Failed to ingest entities for kind issue: SAM1-10:
+                #   Entity with identifier "SAM1-5" does not exist in
+                #   the blueprint "jiraIssue"
+                #
+                # Nine of fourteen issues were lost to this. The parent
+                # relation is only safe once the selector stops filtering
+                # by status, which reintroduces the unbounded-history
+                # question G-9 raises — so the relation waits for that
+                # decision rather than forcing it.
               }
             }
           }

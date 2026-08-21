@@ -1,0 +1,120 @@
+{
+  "captured": "2026-08-21 — ADR-004 Jira ingestion, runtime read-back",
+  "requirement": "ADR-004 (overrides DM-6)",
+  "evidence_label": "E-READ",
+  "claim": "The self-hosted Jira collector ingests projects and live issues into jiraProject and jiraIssue. Summary is the only free-text field taken; description, comments and attachments are not ingested.",
+  "jiraProject_count": 2,
+  "jiraIssue_count": 14,
+  "projects": [
+    {
+      "identifier": "KAN",
+      "title": "My Software Team",
+      "url": "https://bitcot-team-vlo3lkk3.atlassian.net/jira/software/projects/KAN"
+    },
+    {
+      "identifier": "SAM1",
+      "title": "(Example) Billing System Dev",
+      "url": "https://bitcot-team-vlo3lkk3.atlassian.net/jira/software/projects/SAM1"
+    }
+  ],
+  "issues": [
+    {
+      "identifier": "KAN-1",
+      "title": "Start here: Add your team's work",
+      "status": "To Do",
+      "issueType": "Task",
+      "project": "KAN"
+    },
+    {
+      "identifier": "KAN-2",
+      "title": "Connect Claude to Jira",
+      "status": "To Do",
+      "issueType": "Task",
+      "project": "KAN"
+    },
+    {
+      "identifier": "KAN-3",
+      "title": "Connect Atlassian Rovo MCP to your local coding tools",
+      "status": "To Do",
+      "issueType": "Task",
+      "project": "KAN"
+    },
+    {
+      "identifier": "KAN-4",
+      "title": "Delegate this work item to Claude",
+      "status": "To Do",
+      "issueType": "Subtask",
+      "project": "KAN"
+    },
+    {
+      "identifier": "KAN-5",
+      "title": "Implement this work item from your IDE or terminal",
+      "status": "To Do",
+      "issueType": "Subtask",
+      "project": "KAN"
+    },
+    {
+      "identifier": "SAM1-1",
+      "title": "Implement User Authentication",
+      "status": "To Do",
+      "issueType": "Epic",
+      "project": "SAM1"
+    },
+    {
+      "identifier": "SAM1-10",
+      "title": "Finalize Documentation for the Project",
+      "status": "In Review",
+      "issueType": "Task",
+      "project": "SAM1"
+    },
+    {
+      "identifier": "SAM1-2",
+      "title": "Implement Market Analysis Tools",
+      "status": "In Review",
+      "issueType": "Epic",
+      "project": "SAM1"
+    },
+    {
+      "identifier": "SAM1-3",
+      "title": "Conduct User Testing for the Platform",
+      "status": "In Progress",
+      "issueType": "Epic",
+      "project": "SAM1"
+    },
+    {
+      "identifier": "SAM1-4",
+      "title": "Prepare for Project Launch",
+      "status": "To Do",
+      "issueType": "Epic",
+      "project": "SAM1"
+    },
+    {
+      "identifier": "SAM1-6",
+      "title": "Set Up Notifications for Users",
+      "status": "To Do",
+      "issueType": "Task",
+      "project": "SAM1"
+    },
+    {
+      "identifier": "SAM1-7",
+      "title": "Create Wallet Integration",
+      "status": "In Progress",
+      "issueType": "Task",
+      "project": "SAM1"
+    },
+    {
+      "identifier": "SAM1-8",
+      "title": "Develop Transaction History Feature",
+      "status": "To Do",
+      "issueType": "Task",
+      "project": "SAM1"
+    },
+    {
+      "identifier": "SAM1-9",
+      "title": "Optimize Performance of the Application",
+      "status": "To Do",
+      "issueType": "Task",
+      "project": "SAM1"
+    }
+  ]
+}
