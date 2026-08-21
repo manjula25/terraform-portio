@@ -1,0 +1,92 @@
+{
+  "captured": "2026-08-21 — jiraUser mapping added",
+  "claim": "Jira users are ingested as jiraUser, filtered to real people, with email deliberately unmapped per B-1. Issues relate to their reporter and assignee.",
+  "jira_api_returned": 46,
+  "by_account_type": {
+    "atlassian": 1,
+    "app": 45
+  },
+  "ingested": 1,
+  "filter": ".accountType == \"atlassian\"",
+  "users": [
+    {
+      "identifier": "712020:bcecbb1a-8b54-435c-875c-ef507429d0cf",
+      "title": "baranidharan",
+      "active": true,
+      "accountType": "atlassian",
+      "emailAddress": "NOT MAPPED — B-1"
+    }
+  ],
+  "issue_relations": [
+    {
+      "identifier": "KAN-1",
+      "reporter": "712020:bcecbb1a-8b54-435c-875c-ef507429d0cf",
+      "assignee": null
+    },
+    {
+      "identifier": "KAN-2",
+      "reporter": "712020:bcecbb1a-8b54-435c-875c-ef507429d0cf",
+      "assignee": null
+    },
+    {
+      "identifier": "KAN-3",
+      "reporter": "712020:bcecbb1a-8b54-435c-875c-ef507429d0cf",
+      "assignee": null
+    },
+    {
+      "identifier": "KAN-4",
+      "reporter": "712020:bcecbb1a-8b54-435c-875c-ef507429d0cf",
+      "assignee": null
+    },
+    {
+      "identifier": "KAN-5",
+      "reporter": "712020:bcecbb1a-8b54-435c-875c-ef507429d0cf",
+      "assignee": null
+    },
+    {
+      "identifier": "SAM1-1",
+      "reporter": "712020:bcecbb1a-8b54-435c-875c-ef507429d0cf",
+      "assignee": null
+    },
+    {
+      "identifier": "SAM1-10",
+      "reporter": "712020:bcecbb1a-8b54-435c-875c-ef507429d0cf",
+      "assignee": null
+    },
+    {
+      "identifier": "SAM1-2",
+      "reporter": "712020:bcecbb1a-8b54-435c-875c-ef507429d0cf",
+      "assignee": null
+    },
+    {
+      "identifier": "SAM1-3",
+      "reporter": "712020:bcecbb1a-8b54-435c-875c-ef507429d0cf",
+      "assignee": null
+    },
+    {
+      "identifier": "SAM1-4",
+      "reporter": "712020:bcecbb1a-8b54-435c-875c-ef507429d0cf",
+      "assignee": null
+    },
+    {
+      "identifier": "SAM1-6",
+      "reporter": "712020:bcecbb1a-8b54-435c-875c-ef507429d0cf",
+      "assignee": null
+    },
+    {
+      "identifier": "SAM1-7",
+      "reporter": "712020:bcecbb1a-8b54-435c-875c-ef507429d0cf",
+      "assignee": null
+    },
+    {
+      "identifier": "SAM1-8",
+      "reporter": "712020:bcecbb1a-8b54-435c-875c-ef507429d0cf",
+      "assignee": null
+    },
+    {
+      "identifier": "SAM1-9",
+      "reporter": "712020:bcecbb1a-8b54-435c-875c-ef507429d0cf",
+      "assignee": null
+    }
+  ]
+}

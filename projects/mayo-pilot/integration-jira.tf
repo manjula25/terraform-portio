@@ -113,6 +113,59 @@ resource "port_integration" "jira" {
         }
       },
       {
+        # Jira users -> jiraUser. Requested 21 Aug 2026.
+        #
+        # FILTERED TO REAL PEOPLE. This site returns 46 users, of which
+        # 45 are Atlassian marketplace app accounts — "Blocker Checker",
+        # "Brand Voice Crafter", "Global Translator" and so on — and one
+        # is a person. Ingesting all 46 would make the Jira Users table
+        # a list of installed add-ons with a human hidden in it, which
+        # tells a reader nothing. `accountType == "atlassian"` is the
+        # field that separates them.
+        #
+        # Measured: {'atlassian': 1, 'app': 45}.
+        kind = "user"
+        selector = {
+          query = ".accountType == \"atlassian\""
+        }
+        port = {
+          entity = {
+            mappings = {
+              # accountId, not the email. It is Atlassian's stable
+              # identifier and survives a display-name change; an email
+              # as an identifier would also put a personal address in
+              # every relation that points here.
+              identifier = ".accountId"
+              title      = ".displayName"
+              blueprint  = "\"jiraUser\""
+
+              properties = {
+                displayName = ".displayName"
+                active      = ".active"
+                accountType = ".accountType"
+
+                # emailAddress is DELIBERATELY NOT MAPPED, even though
+                # the blueprint has the property and Jira returns it.
+                #
+                # B-1: a handle, never an email. The same rule already
+                # governs pull_request.author in
+                # modules/core-blueprints/main.tf — "an email here would
+                # make the catalog a directory of who changed what,
+                # which is a different privacy question than the one
+                # G-2 answered". A Jira user table is exactly that
+                # directory, and the display name identifies a person
+                # for catalog purposes without publishing their address.
+                #
+                # Also practical: app accounts return null for it, so
+                # mapping it would need the same `if . then` guard as
+                # priority — but the reason it is absent is the rule,
+                # not the null.
+              }
+            }
+          }
+        }
+      },
+      {
         kind = "issue"
         selector = {
           # JQL, not jq. Bounded deliberately: `statusCategory != Done`
@@ -156,6 +209,27 @@ resource "port_integration" "jira" {
 
               relations = {
                 project = ".fields.project.key"
+
+                # -> jiraUser, matching the `user` kind above. NOT the
+                # `assignee`/`reporter` relations, which target Port's
+                # native _user blueprint and would need every Jira
+                # account to exist as a Port user first.
+                #
+                # Guarded: every issue on this board is Unassigned, so
+                # .fields.assignee is null throughout. `if . then` yields
+                # nothing rather than sending null, the same form
+                # priority and resolutionDate needed — `// empty` would
+                # pass the null straight through.
+                #
+                # Safe against the parentIssue trap: both resolve to
+                # jiraUser entities the `user` kind creates in the same
+                # sync, not to issues the JQL filter excludes. The
+                # reporter here is the one real person on the site; if a
+                # reporter were ever an app account the selector filters
+                # it out and this relation would dangle — worth
+                # re-checking if the user filter is ever widened.
+                jira_user_assignee = "if .fields.assignee then .fields.assignee.accountId else empty end"
+                jira_user_reporter = "if .fields.reporter then .fields.reporter.accountId else empty end"
 
                 # parentIssue is DELIBERATELY NOT MAPPED.
                 #
