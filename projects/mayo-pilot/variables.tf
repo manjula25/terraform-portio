@@ -253,3 +253,42 @@ variable "confluence_space_url" {
   default     = null
   nullable    = true
 }
+
+####################################################################
+# Jira (Ocean) integration — INGESTION, overriding DM-6
+#
+# See integration-jira.tf and docs/adr/ADR-004-jira-ingestion.md. The
+# Atlassian API token is NOT here and must never be: invariant 8 keeps
+# secrets out of Terraform state. It belongs in the collector's
+# environment only.
+####################################################################
+
+variable "jira_installation_id" {
+  description = <<-EOT
+    The identifier of the Jira (Ocean) integration.
+
+    CHOSEN BY US, not issued by Port — the Jira integration is
+    self-hosted (installationType "OnPrem"). This string must equal the
+    collector's OCEAN__INTEGRATION__IDENTIFIER, or `terraform import`
+    adopts nothing and the next apply creates a second, empty
+    integration beside the real one.
+  EOT
+  type        = string
+  default     = null
+  nullable    = true
+
+  validation {
+    condition     = var.jira_installation_id == null || can(regex("^[a-z0-9-]+$", var.jira_installation_id))
+    error_message = "jira_installation_id must contain only lowercase letters, numbers and dashes."
+  }
+}
+
+variable "jira_host" {
+  description = <<-EOT
+    Atlassian site base URL, e.g. https://acme.atlassian.net. Used to
+    build browse links in the mapping. No trailing slash.
+  EOT
+  type        = string
+  default     = null
+  nullable    = true
+}
