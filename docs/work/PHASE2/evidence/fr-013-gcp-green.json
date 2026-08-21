@@ -1,0 +1,12 @@
+{
+  "plan_resources_matching_port_integration_gcp": 1,
+  "resource_changes": [
+    {
+      "address": "port_integration.gcp",
+      "actions": ["create"]
+    }
+  ],
+  "plan_summary": "4 to add, 1 to change, 0 to destroy",
+  "mapping_kind": "cloudresourcemanager.googleapis.com/Project",
+  "target_blueprint": "environment"
+}

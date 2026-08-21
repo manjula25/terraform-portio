@@ -1,0 +1,68 @@
+{
+  "captured": "2026-08-20 session 3",
+  "stack": "projects/mayo-pilot",
+  "note": "Plan-rung evidence for the live UI-mapping divergence decided in ADR-003. Runtime read-back NOT captured (G-6).",
+  "planned_actions": [
+    {
+      "address": "port_entity.environment[\"dev\"]",
+      "actions": [
+        "create"
+      ]
+    },
+    {
+      "address": "port_entity.environment[\"prod\"]",
+      "actions": [
+        "create"
+      ]
+    },
+    {
+      "address": "port_entity.project",
+      "actions": [
+        "create"
+      ]
+    },
+    {
+      "address": "port_integration.gcp",
+      "actions": [
+        "create"
+      ]
+    },
+    {
+      "address": "port_integration.github",
+      "actions": [
+        "update"
+      ]
+    }
+  ],
+  "github_integration": {
+    "installation_app_type_before": "github-ocean",
+    "installation_app_type_after": "github-ocean",
+    "live_mapping_block_count": 10,
+    "committed_mapping_block_count": 2,
+    "live_target_blueprints": [
+      "organization -> \"githubOrganization\"",
+      "team -> \"githubTeam\"",
+      "user -> \"githubUser\"",
+      "repository -> \"githubRepository\"",
+      "team -> \"githubUser\"",
+      "pull-request -> \"githubPullRequest\"",
+      "workflow -> \"githubWorkflow\"",
+      "workflow-run -> \"githubWorkflowRun\"",
+      "workflow-run -> \"githubWorkflow\"",
+      "pull-request -> \"deployment\""
+    ],
+    "committed_target_blueprints": [
+      "repository -> \"service\"",
+      "pull-request -> \"pull_request\""
+    ]
+  },
+  "ui_sync_failures_root_cause": {
+    "error_text": "filter on non exists properties is not supported",
+    "failing_entities": [
+      "terraform-portio-deploy-1",
+      "terraform-portio-pr-1"
+    ],
+    "missing_property": "github_repository_id",
+    "defined_by_any_blueprint_in_model": false
+  }
+}

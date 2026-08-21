@@ -1,0 +1,81 @@
+{
+  "captured": "2026-08-20 session 3, immediately before the FR-005 prune",
+  "note": "Entities deleted along with their Ocean default blueprints. Recorded so the deletion is auditable.",
+  "groups": [
+    {
+      "blueprint": "githubOrganization",
+      "count": 1,
+      "identifiers": [
+        "manjula25"
+      ]
+    },
+    {
+      "blueprint": "githubPullRequest",
+      "count": 1,
+      "identifiers": [
+        "SAMPLE_ADLC-pr-1"
+      ]
+    },
+    {
+      "blueprint": "githubRepository",
+      "count": 25,
+      "identifiers": [
+        "proj_stage_mqqvi852",
+        "claude-workflow",
+        "proj_stage_mqrlsw4t",
+        "proj_stage_mqpdolpz",
+        "pdfjs_viewer-rails",
+        "adlc",
+        "terraform-port",
+        "aws-sdk-ruby",
+        "proj_stage_mqpeciuz",
+        "proj_stage_mqqvatjp",
+        "adlc-app-1",
+        "SAMPLE_ADLC",
+        "proj_stage_mqpeeecp",
+        "proj_stage_mqpdqwqu",
+        "proj_stage_mqpejs8z",
+        "Warm-Handoff",
+        "proj_stage_mqrmee18",
+        "Runaway",
+        "hellosign-embedded",
+        "auth",
+        "port-io",
+        "caregiver",
+        "sand",
+        "proj_stage_mqpdeaw2",
+        "terraform-portio"
+      ]
+    },
+    {
+      "blueprint": "githubUser",
+      "count": 1,
+      "identifiers": [
+        "manjula25"
+      ]
+    },
+    {
+      "blueprint": "githubWorkflow",
+      "count": 2,
+      "identifiers": [
+        "manjula25/terraform-portio337768869",
+        "manjula25/terraform-portio337768867"
+      ]
+    },
+    {
+      "blueprint": "githubWorkflowRun",
+      "count": 2,
+      "identifiers": [
+        "manjula25/terraform-portio32251145802",
+        "manjula25/terraform-portio32252223814"
+      ]
+    },
+    {
+      "blueprint": "organization",
+      "count": 1,
+      "identifiers": [
+        "default-org"
+      ]
+    }
+  ]
+}

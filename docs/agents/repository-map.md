@@ -43,4 +43,7 @@ None. There is no test harness in this repository, by current state rather than 
 - `.github/workflows/plan.yml` — every pull request. Plans each affected stack, replans all project stacks when `modules/` changes, comments the plan, and fails the `organization` plan if it contains a delete
 - `.github/workflows/apply.yml` — merge to `main`, gated by the `port-production` GitHub environment
 - `scripts/verify.sh` — the local equivalent of the plan gate, reporting each rung's exit code
+- `scripts/verify-mappings.sh` — runs each integration mapping's `jq` against sample inputs. A pre-flight check that reads source text, so explicitly **below** the evidence ladder, not a rung
+- `scripts/prune-ocean-blueprints.sh` — deletes the Ocean default-resource blueprints that make `FR-005` fail. Not configuration and not part of `verify.sh`: nothing in this repository declares those blueprints, so no `terraform destroy` can reach them. Dry run by default; `--apply` deletes
+- `scripts/restore-ocean-blueprints.sh` — the rollback for the above, recreating all 41 from `evidence/fr-005-pre-prune-backup.json`. Restores **schema only**; the deleted entities are catalog data and do not come back. Running it makes `FR-005` fail again, by design
 - `.gitignore` — keeps state, plan files, and `.tfvars` out of the repository

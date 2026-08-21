@@ -27,3 +27,8 @@ crash.*.log
 # Temporary local-state override while the GCS bucket is blocked on
 # billing. Never commit a backend override or a local state file.
 *_override.tf
+tfplan-github
+tfplan-github2
+tfplan-entities
+tfplan-rs
+tfplan-ji

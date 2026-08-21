@@ -37,6 +37,19 @@ resource "port_entity" "project" {
       var.repo_url == null ? {} : { "repo_url" = var.repo_url },
       var.teams_channel == null ? {} : { "teams_channel" = var.teams_channel },
       var.start_date == null ? {} : { "start_date" = var.start_date },
+
+      # DM-6: Jira and Confluence are LINKED, never ingested. These are a
+      # key and a URL a human clicks through — no issue, summary,
+      # description or comment content crosses into Port, which is what
+      # keeps invariant 1 (metadata only) intact and the no-BAA position
+      # standing.
+      #
+      # They sit on `project` rather than `service` deliberately:
+      # `service` is written by the git integration, and a second writer
+      # there would blank ingested fields on the next apply.
+      var.jira_project_key == null ? {} : { "jira_project_key" = var.jira_project_key },
+      var.jira_project_url == null ? {} : { "jira_project_url" = var.jira_project_url },
+      var.confluence_space_url == null ? {} : { "confluence_space_url" = var.confluence_space_url },
     )
   }
 }

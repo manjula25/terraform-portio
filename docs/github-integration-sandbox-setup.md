@@ -54,11 +54,20 @@ This is the one step Terraform cannot do — it's an OAuth / GitHub App handshak
 
 ## Step 2 — Find the real installation ID (not the data-source name)
 
-The install-complete screen, or the GitHub App's own installation page
-(`github.com/apps/<app-name>/installations/<numeric-id>`), shows a numeric ID — that's
-the real one, e.g. `154905752`. If you can't find it in the UI, confirm it directly
-against Port's API (this is exactly the field Terraform reads, so it's the most
-reliable source):
+**Corrected 20 Aug 2026 — this section previously told you to use the numeric ID.**
+
+The GitHub App's installation page (`github.com/apps/<app-name>/installations/<numeric-id>`)
+shows a numeric ID such as `154905752`. **That is a GitHub-side number and Port does not key
+the integration on it.** Verified against the live tenant:
+
+```
+GET /v1/integration/154905752     -> 404
+GET /v1/integration/github-ocean  -> 200
+```
+
+What Terraform needs is Port's own `installationId`, a lowercase-dash slug — `github-ocean`
+for a default Ocean GitHub install. Ask the API rather than the UI; it is the field Terraform
+actually reads:
 
 ```bash
 curl -s -X POST https://api.port.io/v1/auth/access_token \
@@ -94,9 +103,9 @@ This file is gitignored — it never gets committed. In
 `projects/mayo-pilot/terraform.tfvars` (or wherever you're running this from), set:
 
 ```hcl
-github_installation_id = "154905752"
+github_installation_id = "github-ocean"
 github_organizations   = ["manjula25"]
-github_repo_search     = "user:manjula25 repo:manjula25/terraform-portio"
+github_repo_search     = "repo:manjula25/terraform-portio"
 ```
 
 Leave every other variable (`project_identifier`, `owning_team`, etc.) as whatever
@@ -118,7 +127,7 @@ Expect: `Terraform has been successfully initialized!`
 ## Step 6 — Import the integration (do not skip this)
 
 ```bash
-terraform import port_integration.github 154905752
+terraform import port_integration.github github-ocean
 ```
 
 Expect: `Import successful!`

@@ -14,6 +14,14 @@ tier               = "client"
 
 # Must already exist in Port. Teams come from the IdP (Entra ID —
 # assumed, not confirmed), not from this stack.
+#
+# This is the team's IDENTIFIER, not its title, and the two differ.
+# GET /v1/teams reports a `name` field, but a port_entity relation
+# resolves against the identifier stored on the _team blueprint — where
+# "default-team" is identifier "default_team". Read it from
+#   GET /v1/blueprints/_team/entities
+# Using the title fails the apply with "Entity with identifier ... does
+# not exist in the blueprint \"_team\"" (hit 20 Aug 2026).
 owning_team = "REPLACE-ME"
 
 repo_url      = "https://github.com/REPLACE-ME-org"
@@ -41,4 +49,18 @@ environments = {
 # From the Port UI after installing the GitHub (Ocean) data source.
 github_installation_id = "REPLACE-ME"
 github_organizations   = ["REPLACE-ME-org"]
-github_repo_search     = "org:REPLACE-ME-org topic:port-pilot"
+# This search ANDs with `repositoryType = "private"` in
+# github-integration.tf. If it names a public repository, the private
+# filter removes it and the sync produces ZERO service entities with no
+# error anywhere — an empty result that looks identical to "the sync has
+# not run yet". Confirm visibility before setting this (hit 20 Aug 2026).
+github_repo_search = "org:REPLACE-ME-org topic:port-pilot"
+
+# CHOSEN BY US, not read from the Port UI — the GCP integration is
+# self-hosted. This string must equal the `integration.identifier` the
+# collector is deployed with, or the import adopts nothing.
+# Blocked on PQ-1 and PQ-17 — do not set until both close and the GCP
+# integration is deployed. See integration-gcp.tf header.
+gcp_installation_id = "mayo-pilot-gcp"
+gcp_project_filter  = ".display_name | startswith(\"iris-\")"
+
