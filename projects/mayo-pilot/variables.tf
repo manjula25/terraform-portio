@@ -221,3 +221,35 @@ variable "github_repository_type" {
     error_message = "github_repository_type must be one of: private, public, all."
   }
 }
+
+####################################################################
+# Jira and Confluence — LINKS ONLY (DM-6)
+#
+# A key and a URL, nothing more. No issue, summary, description or
+# comment content is ingested, and no Jira integration is installed:
+# CONTEXT.md's external boundaries read "Jira and Confluence, linked
+# only and never ingested", and ingesting ticket text would cross
+# invariant 1 (metadata only) — a Mayo privacy decision, not a
+# technical one.
+####################################################################
+
+variable "jira_project_key" {
+  description = "Jira project key, e.g. IRIS. A link only — no issue data is ingested (DM-6)."
+  type        = string
+  default     = null
+  nullable    = true
+}
+
+variable "jira_project_url" {
+  description = "URL of the Jira project board. A link only (DM-6)."
+  type        = string
+  default     = null
+  nullable    = true
+}
+
+variable "confluence_space_url" {
+  description = "URL of the Confluence space. A link only, never ingested (DM-6)."
+  type        = string
+  default     = null
+  nullable    = true
+}
